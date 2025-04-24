@@ -16,5 +16,5 @@ func GetStringSlice(arg map[string]interface{}, key string) []string {
 			return strSlice
 		}
 	}
-	return nil
+	return []string{}
 }
