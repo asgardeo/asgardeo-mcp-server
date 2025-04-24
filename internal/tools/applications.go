@@ -1,4 +1,4 @@
-package applications
+package tools
 
 import (
 	"context"
@@ -9,9 +9,10 @@ import (
 	"github.com/mark3labs/mcp-go/server"
 	"github.com/shashimalcse/go-asgardeo/management"
 	"github.com/thilinashashimalsenarath/asgardeo-mcp/internal/asgardeo"
+	"github.com/thilinashashimalsenarath/asgardeo-mcp/internal/utils"
 )
 
-func List() (mcp.Tool, server.ToolHandlerFunc) {
+func GetApplicationListTool() (mcp.Tool, server.ToolHandlerFunc) {
 	client, err := asgardeo.GetClientInstance(context.Background())
 
 	if err != nil {
@@ -36,7 +37,7 @@ func List() (mcp.Tool, server.ToolHandlerFunc) {
 	return appListTool, appListToolImpl
 }
 
-func Get() (mcp.Tool, server.ToolHandlerFunc) {
+func GetApplicationDetailTool() (mcp.Tool, server.ToolHandlerFunc) {
 	client, err := asgardeo.GetClientInstance(context.Background())
 
 	if err != nil {
@@ -68,7 +69,7 @@ func Get() (mcp.Tool, server.ToolHandlerFunc) {
 	return appDetailFetchTool, appDetailFetchToolImpl
 }
 
-func Create() (mcp.Tool, server.ToolHandlerFunc) {
+func GetApplicationCreateTool() (mcp.Tool, server.ToolHandlerFunc) {
 	client, err := asgardeo.GetClientInstance(context.Background())
 
 	if err != nil {
@@ -85,49 +86,40 @@ func Create() (mcp.Tool, server.ToolHandlerFunc) {
 
 		// Advanced Configurations
 		mcp.WithBoolean("discoverableByEndUsers",
+			mcp.DefaultBool(false),
 			mcp.Description("Whether the app is discoverable by end users"),
 		),
 		mcp.WithBoolean("skipLogoutConsent",
+			mcp.DefaultBool(true),
 			mcp.Description("Whether to skip logout consent"),
 		),
 		mcp.WithBoolean("skipLoginConsent",
+			mcp.DefaultBool(true),
 			mcp.Description("Whether to skip login consent"),
 		),
-
-		// Authentication Sequence
-		mcp.WithString("authenticationSequenceType",
-			mcp.Description("Type of the authentication sequence (e.g., DEFAULT)"),
-		),
-		mcp.WithArray("authenticationSteps",
-			mcp.Description("Authentication steps including idp and authenticator"),
-		),
-
-		// Claim Configuration
-		mcp.WithString("claimDialect",
-			mcp.Description("Dialect for requested claims (e.g., LOCAL)"),
-		),
-		mcp.WithArray("requestedClaims",
-			mcp.Description("List of requested claim URIs"),
-		),
-
 		// OIDC Inbound Configuration
 		mcp.WithArray("grantTypes",
+			mcp.DefaultArray([]string{}),
 			mcp.Description("OIDC grant types"),
 		),
 		mcp.WithArray("allowedOrigins",
+			mcp.DefaultArray([]string{"*"}),
 			mcp.Description("Allowed CORS origins"),
 		),
 		mcp.WithArray("callbackURLs",
+			mcp.DefaultArray([]string{}),
 			mcp.Description("Authorized redirect URLs for the Asgardeo application"),
 		),
 
 		mcp.WithBoolean("pkceMandatory",
+			mcp.DefaultBool(true),
 			mcp.Description("Is PKCE mandatory"),
 		),
 		mcp.WithBoolean("supportPlainTransformAlgorithm",
 			mcp.Description("Support plain PKCE transformation algorithm"),
 		),
 		mcp.WithBoolean("publicClient",
+			mcp.DefaultBool(false),
 			mcp.Description("Is the client public"),
 		),
 
@@ -136,6 +128,7 @@ func Create() (mcp.Tool, server.ToolHandlerFunc) {
 			mcp.Description("Access token expiry time in seconds"),
 		),
 		mcp.WithNumber("applicationAccessTokenExpiryInSeconds",
+			mcp.DefaultNumber(3600),
 			mcp.Description("Application access token expiry time in seconds"),
 		),
 		mcp.WithString("accessTokenBindingType",
@@ -166,23 +159,34 @@ func Create() (mcp.Tool, server.ToolHandlerFunc) {
 	createAppToolImpl = func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 		name := req.Params.Arguments["name"].(string)
-		// callbackURLs := req.Params.Arguments["callbackURLs"].([]string)
+		var newCallbackURLs []string
 
-		// // Create a new application
-		// var newCallbackURLs []string
-		// if callbackURLs != nil {
-		// 	newCallbackURLs = callbackURLs
-		// } else {
-		// 	newCallbackURLs = []string{}
-		// }
+		if val, ok := req.Params.Arguments["callbackURLs"]; ok {
+			if callbackURLs, ok := val.([]string); ok {
+				newCallbackURLs = callbackURLs
+			} else {
+				newCallbackURLs = []string{}
+			}
+		} else {
+			newCallbackURLs = []string{}
+		}
 
 		newApp := management.ApplicationCreateInput{
 			Name: name,
-			// InboundProtocolConfiguration: &management.InboundProtocolConfiguration{
-			// 	OIDC: &management.InboundOIDCConfig{
-			// 		CallbackURLs: newCallbackURLs,
-			// 	},
-			// },
+			InboundProtocolConfiguration: &management.InboundProtocolConfiguration{
+				OIDC: &management.InboundOIDCConfig{
+					GrantTypes:     utils.GetStringSlice(req.Params.Arguments, "grantTypes"),
+					AllowedOrigins: utils.GetStringSlice(req.Params.Arguments, "allowedOrigins"),
+					ResponseTypes:  utils.GetStringSlice(req.Params.Arguments, "responseTypes"),
+					CallbackURLs:   newCallbackURLs,
+				},
+			},
+			AdvancedConfigurations: &management.AdvancedConfigurations{
+				DiscoverableByEndUsers: req.Params.Arguments["discoverableByEndUsers"].(bool),
+				SkipLogoutConsent:      req.Params.Arguments["skipLogoutConsent"].(bool),
+				SkipLoginConsent:       req.Params.Arguments["skipLoginConsent"].(bool),
+			},
+			TemplateID: "custom-application-oidc",
 		}
 
 		resp, err := client.Applications().Create(ctx, newApp)

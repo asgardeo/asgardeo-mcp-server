@@ -4,7 +4,7 @@ import (
 	"log"
 
 	"github.com/mark3labs/mcp-go/server"
-	applications "github.com/thilinashashimalsenarath/asgardeo-mcp/internal/tools"
+	"github.com/thilinashashimalsenarath/asgardeo-mcp/internal/tools"
 )
 
 // setupServer configures the MCP server and registers tools.
@@ -17,14 +17,23 @@ func setupServer() *server.MCPServer {
 		server.WithRecovery(),
 	)
 
-	appListTool, appListToolImpl := applications.List()
+	appListTool, appListToolImpl := tools.GetApplicationListTool()
 	s.AddTool(appListTool, appListToolImpl)
 
-	appDetailFetchTool, appDetailFetchToolImpl := applications.Get()
+	appDetailFetchTool, appDetailFetchToolImpl := tools.GetApplicationDetailTool()
 	s.AddTool(appDetailFetchTool, appDetailFetchToolImpl)
 
-	appCreateTool, appCreateToolImpl := applications.Create()
+	appCreateTool, appCreateToolImpl := tools.GetApplicationCreateTool()
 	s.AddTool(appCreateTool, appCreateToolImpl)
+
+	apiResourceCreateTool, apiResourceCreateToolImpl := tools.GetApiResourceCreateTool()
+	s.AddTool(apiResourceCreateTool, apiResourceCreateToolImpl)
+
+	apiResourceListTool, apiResourceListToolImpl := tools.GetApiResourceListTool()
+	s.AddTool(apiResourceListTool, apiResourceListToolImpl)
+
+	apiResourcePatchTool, apiResourcePatchToolImpl := tools.GetApiResourcePatchTool()
+	s.AddTool(apiResourcePatchTool, apiResourcePatchToolImpl)
 
 	return s
 }
