@@ -7,9 +7,9 @@ import (
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
-	"github.com/shashimalcse/go-asgardeo/management"
-	"github.com/thilinashashimalsenarath/asgardeo-mcp/internal/asgardeo"
-	"github.com/thilinashashimalsenarath/asgardeo-mcp/internal/utils"
+	"github.com/asgardeo/go/management"
+	"github.com/asgardeo/mcp/internal/asgardeo"
+	"github.com/asgardeo/mcp/internal/utils"
 )
 
 func GetApplicationListTool() (mcp.Tool, server.ToolHandlerFunc) {

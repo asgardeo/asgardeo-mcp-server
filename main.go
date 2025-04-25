@@ -4,7 +4,7 @@ import (
 	"log"
 
 	"github.com/mark3labs/mcp-go/server"
-	"github.com/thilinashashimalsenarath/asgardeo-mcp/internal/tools"
+	"github.com/asgardeo/mcp/internal/tools"
 )
 
 // setupServer configures the MCP server and registers tools.

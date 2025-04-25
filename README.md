@@ -33,7 +33,7 @@ go build
         "command": "<absolute path to the asgardeo-mcp executable>",
         "args": [],
         "env": {
-            "ASGARDEO_BASE_URL" : "https://api.asgardeo.io/t/<asgardeo base URL>",
+            "ASGARDEO_BASE_URL" : "https://api.asgardeo.io/t/<asgardeo organization>",
             "ASGARDEO_CLIENT_ID" : "<client ID>",
             "ASGARDEO_CLIENT_SECRET" : "<client secret>"
         }
@@ -55,7 +55,7 @@ go build
         "command": "<absolute path to the asgardeo-mcp executable>",
         "args": [],
         "env": {
-            "ASGARDEO_BASE_URL" : "https://api.asgardeo.io/t/<asgardeo base URL>",
+            "ASGARDEO_BASE_URL" : "https://api.asgardeo.io/t/<asgardeo organization>",
             "ASGARDEO_CLIENT_ID" : "<client ID>",
             "ASGARDEO_CLIENT_SECRET" : "<client secret>"
         }

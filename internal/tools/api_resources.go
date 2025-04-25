@@ -7,8 +7,8 @@ import (
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
-	"github.com/shashimalcse/go-asgardeo/management"
-	"github.com/thilinashashimalsenarath/asgardeo-mcp/internal/asgardeo"
+	"github.com/asgardeo/go/management"
+	"github.com/asgardeo/mcp/internal/asgardeo"
 )
 
 func GetApiResourceCreateTool() (mcp.Tool, server.ToolHandlerFunc) {

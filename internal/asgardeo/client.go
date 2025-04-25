@@ -4,8 +4,8 @@ import (
 	"context"
 	"sync"
 
-	"github.com/shashimalcse/go-asgardeo/management"
-	"github.com/thilinashashimalsenarath/asgardeo-mcp/internal/config"
+	"github.com/asgardeo/go/management"
+	"github.com/asgardeo/mcp/internal/config"
 )
 
 var (
