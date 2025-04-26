@@ -177,8 +177,7 @@ func GetApplicationCreateTool() (mcp.Tool, server.ToolHandlerFunc) {
 		}
 
 		newApp := management.ApplicationCreateInput{
-			Name:        name,
-			Description: req.Params.Arguments["description"].(string),
+			Name: name,
 			InboundProtocolConfiguration: &management.InboundProtocolConfiguration{
 				OIDC: &management.InboundOIDCConfig{
 					GrantTypes:     utils.GetStringSlice(req.Params.Arguments, "grantTypes"),
