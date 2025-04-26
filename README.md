@@ -12,13 +12,19 @@ MCP server to interact with your Asgardeo organization through LLM tools
 ### On your machine
 
 4. Clone the repo.
-5. Build the repo. This will create an executable named `asgardeo-mcp`.
+5. Install dependencies.
 
-```bash
-go build
+```
+go mod tidy
 ```
 
-6. Configure your MCP client.
+6. Build the repo. This will create an executable named `asgardeo-mcp`.
+
+```bash
+go build -o asgardeo-mcp
+```
+
+7. Configure your MCP client.
 
 - Claude Desktop
 

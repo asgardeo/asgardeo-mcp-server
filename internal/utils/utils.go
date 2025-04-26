@@ -18,3 +18,17 @@ func GetStringSlice(arg map[string]interface{}, key string) []string {
 	}
 	return []string{}
 }
+
+// GetBoolWithDefault returns the boolean value from the interface{} if it exists,
+// otherwise returns the default value
+func GetBoolWithDefault(value interface{}, defaultValue bool) bool {
+	if value == nil {
+		return defaultValue
+	}
+
+	if boolValue, ok := value.(bool); ok {
+		return boolValue
+	}
+
+	return defaultValue
+}

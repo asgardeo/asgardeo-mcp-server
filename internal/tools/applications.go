@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/mark3labs/mcp-go/mcp"
-	"github.com/mark3labs/mcp-go/server"
 	"github.com/asgardeo/go/management"
 	"github.com/asgardeo/mcp/internal/asgardeo"
 	"github.com/asgardeo/mcp/internal/utils"
+	"github.com/mark3labs/mcp-go/mcp"
+	"github.com/mark3labs/mcp-go/server"
 )
 
 func GetApplicationListTool() (mcp.Tool, server.ToolHandlerFunc) {
@@ -82,6 +82,11 @@ func GetApplicationCreateTool() (mcp.Tool, server.ToolHandlerFunc) {
 		mcp.WithString("name",
 			mcp.Required(),
 			mcp.Description("Name of the Asgardeo application"),
+		),
+
+		mcp.WithString("description",
+			mcp.DefaultString(""),
+			mcp.Description("A brief description of the Asgardeo application"),
 		),
 
 		// Advanced Configurations
@@ -172,7 +177,8 @@ func GetApplicationCreateTool() (mcp.Tool, server.ToolHandlerFunc) {
 		}
 
 		newApp := management.ApplicationCreateInput{
-			Name: name,
+			Name:        name,
+			Description: req.Params.Arguments["description"].(string),
 			InboundProtocolConfiguration: &management.InboundProtocolConfiguration{
 				OIDC: &management.InboundOIDCConfig{
 					GrantTypes:     utils.GetStringSlice(req.Params.Arguments, "grantTypes"),
@@ -180,11 +186,6 @@ func GetApplicationCreateTool() (mcp.Tool, server.ToolHandlerFunc) {
 					ResponseTypes:  utils.GetStringSlice(req.Params.Arguments, "responseTypes"),
 					CallbackURLs:   newCallbackURLs,
 				},
-			},
-			AdvancedConfigurations: &management.AdvancedConfigurations{
-				DiscoverableByEndUsers: req.Params.Arguments["discoverableByEndUsers"].(bool),
-				SkipLogoutConsent:      req.Params.Arguments["skipLogoutConsent"].(bool),
-				SkipLoginConsent:       req.Params.Arguments["skipLoginConsent"].(bool),
 			},
 			TemplateID: "custom-application-oidc",
 		}
