@@ -3,29 +3,34 @@ package asgardeo
 import (
 	"context"
 	"sync"
+	"time"
 
-	"github.com/asgardeo/go/management"
-	"github.com/asgardeo/mcp/internal/config"
+	"github.com/asgardeo/go/pkg/config"
+	"github.com/asgardeo/go/pkg/sdk"
+	internal_config "github.com/asgardeo/mcp/internal/config"
 )
 
 var (
-	clientInstance *management.Client
+	clientInstance *sdk.Client
 	once           sync.Once
 	initErr        error
 )
 
 // NewClient initializes an Asgardeo management client with client credentials.
-func NewClient(ctx context.Context, baseURL, clientID, clientSecret string) (*management.Client, error) {
-	return management.New(
-		baseURL,
-		management.WithClientCredentials(ctx, clientID, clientSecret),
-	)
+func NewClient(ctx context.Context, baseURL, clientID, clientSecret string) (*sdk.Client, error) {
+
+	cfg := config.DefaultClientConfig().
+		WithBaseURL(baseURL).
+		WithTimeout(10*time.Second).
+		WithClientCredentials(clientID, clientSecret)
+
+	return sdk.New(cfg)
 }
 
 // GetClient returns the singleton Asgardeo client.
-func GetClientInstance(ctx context.Context) (*management.Client, error) {
+func GetClientInstance(ctx context.Context) (*sdk.Client, error) {
 	once.Do(func() {
-		baseURL, clientID, clientSecret, err := config.Load()
+		baseURL, clientID, clientSecret, err := internal_config.Load()
 		if err != nil {
 			initErr = err
 			return
