@@ -31,13 +31,29 @@ func setupServer() *server.MCPServer {
 		"Asgardeo Management MCP",
 		"0.0.1",
 		server.WithResourceCapabilities(true, true),
+		server.WithToolCapabilities(true),
 		server.WithLogging(),
 		server.WithRecovery(),
 	)
 
-	appListTool, appListToolImpl := tools.GetApplicationListTool()
+	appListTool, appListToolImpl := tools.GetListApplicationsTool()
 	s.AddTool(appListTool, appListToolImpl)
 
+  spaTool, spaToolImpl := tools.GetCreateSinglePageAppTool()
+	s.AddTool(spaTool, spaToolImpl)
+
+	mobileAppTool, mobileAppToolImpl := tools.GetCreateMobileAppTool()
+	s.AddTool(mobileAppTool, mobileAppToolImpl)
+
+	m2mAppTool, m2mAppToolImpl := tools.GetCreateM2MAppTool()
+	s.AddTool(m2mAppTool, m2mAppToolImpl)
+
+	getAppByNameTool, getAppByNameToolmpl := tools.GetSearchApplicationByNameTool()
+	s.AddTool(getAppByNameTool, getAppByNameToolmpl)
+
+	getAppByClientIdTool, getAppByClientIdToolmpl := tools.GetSearchApplicationByClientIdTool()
+	s.AddTool(getAppByClientIdTool, getAppByClientIdToolmpl)
+  
 	authorizeAPITool, authorizeAPIToolImpl := tools.GetAuthorizeAPITool()
 	s.AddTool(authorizeAPITool, authorizeAPIToolImpl)
 
