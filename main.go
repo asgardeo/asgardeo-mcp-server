@@ -38,6 +38,9 @@ func setupServer() *server.MCPServer {
 	appListTool, appListToolImpl := tools.GetApplicationListTool()
 	s.AddTool(appListTool, appListToolImpl)
 
+	authorizeAPITool, authorizeAPIToolImpl := tools.GetAuthorizeAPITool()
+	s.AddTool(authorizeAPITool, authorizeAPIToolImpl)
+
 	apiResourceListTool, apiResourceListToolImpl := tools.GetListAPIResourcesTool()
 	s.AddTool(apiResourceListTool, apiResourceListToolImpl)
 
