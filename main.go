@@ -39,7 +39,7 @@ func setupServer() *server.MCPServer {
 	appListTool, appListToolImpl := tools.GetListApplicationsTool()
 	s.AddTool(appListTool, appListToolImpl)
 
-  spaTool, spaToolImpl := tools.GetCreateSinglePageAppTool()
+	spaTool, spaToolImpl := tools.GetCreateSinglePageAppTool()
 	s.AddTool(spaTool, spaToolImpl)
 
 	mobileAppTool, mobileAppToolImpl := tools.GetCreateMobileAppTool()
@@ -53,7 +53,7 @@ func setupServer() *server.MCPServer {
 
 	getAppByClientIdTool, getAppByClientIdToolmpl := tools.GetSearchApplicationByClientIdTool()
 	s.AddTool(getAppByClientIdTool, getAppByClientIdToolmpl)
-  
+
 	authorizeAPITool, authorizeAPIToolImpl := tools.GetAuthorizeAPITool()
 	s.AddTool(authorizeAPITool, authorizeAPIToolImpl)
 
