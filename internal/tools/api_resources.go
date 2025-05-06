@@ -25,6 +25,7 @@ import (
 
 	"github.com/asgardeo/go/pkg/api_resource"
 	"github.com/asgardeo/mcp/internal/asgardeo"
+	"github.com/asgardeo/mcp/internal/utils"
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 )
@@ -38,26 +39,25 @@ func GetListAPIResourcesTool() (mcp.Tool, server.ToolHandlerFunc) {
 	apiResourceListTool := mcp.NewTool("list_api_resources",
 		mcp.WithDescription("List API Resources registered in Asgardeo"),
 		mcp.WithString("filter",
-			mcp.Description(`Filter expression to apply, e.g., name eq Payments API`),
+			mcp.Description(`Filter expression to apply, e.g., name eq Payments API, identifier eq payments_api. Supports 'sw', 'co', 'ew' and 'eq' operations.`),
 		),
 		mcp.WithString("before",
-			mcp.Description(`The before cursor to use for pagination. The API will return results before this cursor`),
+			mcp.Description(`Base64 encoded cursor value for backward pagination.`),
 		),
 		mcp.WithString("after",
-			mcp.Description(`The after cursor to use for pagination. The API will return results after this cursor`),
+			mcp.Description(`Base64 encoded cursor value for forward pagination.`),
 		),
 		mcp.WithNumber("limit",
-			mcp.Description(`The maximum number of results to return.`),
+			mcp.Description(`The maximum number of results to return. It is recommended to set this value to 100 or less.`),
 		),
 	)
 
-	var apiResourceListToolImpl server.ToolHandlerFunc
-	apiResourceListToolImpl = func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	apiResourceListToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		args := req.Params.Arguments
-		limit := getOptionalParam[int](args, "limit")
-		filter := getOptionalParam[string](args, "filter")
-		before := getOptionalParam[string](args, "before")
-		after := getOptionalParam[string](args, "after")
+		limit := utils.GetOptionalParam[int](args, "limit")
+		filter := utils.GetOptionalParam[string](args, "filter")
+		before := utils.GetOptionalParam[string](args, "before")
+		after := utils.GetOptionalParam[string](args, "after")
 		params := api_resource.GetAPIResourcesParams{
 			Limit:  limit,
 			Filter: filter,
@@ -96,15 +96,15 @@ func GetSearchAPIResourcesByNameTool() (mcp.Tool, server.ToolHandlerFunc) {
 	if err != nil {
 		log.Printf("Error initializing client instance: %v", err)
 	}
-	apiResourceGetByNameTool := mcp.NewTool("list_api_resources_by_name",
-		mcp.WithDescription("List API Resources registered in Asgardeo by name"),
+	apiResourceSearchByNameTool := mcp.NewTool("search_api_resources_by_name",
+		mcp.WithDescription("Search API Resources registered in Asgardeo by name"),
 		mcp.WithString("name",
 			mcp.Required(),
 			mcp.Description("This is the name of the API resource."),
 		),
 	)
-	var apiResourceListByNameToolImpl server.ToolHandlerFunc
-	apiResourceListByNameToolImpl = func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+
+	apiResourceSearchByNameToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		name := req.Params.Arguments["name"].(string)
 		resp, err := client.APIResource.GetByName(ctx, name)
 		if err != nil {
@@ -127,7 +127,7 @@ func GetSearchAPIResourcesByNameTool() (mcp.Tool, server.ToolHandlerFunc) {
 		}
 		return mcp.NewToolResultText(fmt.Sprintf("%+v", api_resources)), nil
 	}
-	return apiResourceGetByNameTool, apiResourceListByNameToolImpl
+	return apiResourceSearchByNameTool, apiResourceSearchByNameToolImpl
 }
 
 func GetSearchAPIResourceByIdentifierTool() (mcp.Tool, server.ToolHandlerFunc) {
@@ -142,8 +142,8 @@ func GetSearchAPIResourceByIdentifierTool() (mcp.Tool, server.ToolHandlerFunc) {
 			mcp.Description("This is the identifier of the API resource."),
 		),
 	)
-	var apiResourceGetByIdentifierToolImpl server.ToolHandlerFunc
-	apiResourceGetByIdentifierToolImpl = func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+
+	apiResourceGetByIdentifierToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		identifier := req.Params.Arguments["identifier"].(string)
 		resp, err := client.APIResource.GetByIdentifier(ctx, identifier)
 		if err != nil {
@@ -191,12 +191,11 @@ func GetCreateAPIResourceTool() (mcp.Tool, server.ToolHandlerFunc) {
 		mcp.WithArray("scopes",
 			mcp.Required(),
 			mcp.DefaultArray([]api_resource.ScopeCreationModel{}),
-			mcp.Description("This is the list of scopes for the API resource."),
+			mcp.Description("This is the list of scopes for the API resource. Eg: [{\"name\": \"scope1\", \"displayName\": \"Scope 1\", \"description\": \"Description for scope 1\"}, {\"name\": \"scope2\", \"displayName\": \"Scope 2\", \"description\": \"Description for scope 2\"}]"),
 		),
 	)
 
-	var apiResourceCreateToolImpl server.ToolHandlerFunc
-	apiResourceCreateToolImpl = func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	apiResourceCreateToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		name := req.Params.Arguments["name"].(string)
 		identifier := req.Params.Arguments["identifier"].(string)
 		inputScopes := req.Params.Arguments["scopes"].([]interface{})
@@ -248,13 +247,4 @@ func GetCreateAPIResourceTool() (mcp.Tool, server.ToolHandlerFunc) {
 		return mcp.NewToolResultText(fmt.Sprintf("%+v", resp)), nil
 	}
 	return apiResourceCreateTool, apiResourceCreateToolImpl
-}
-
-func getOptionalParam[T any](args map[string]interface{}, key string) *T {
-	if val, ok := args[key]; ok {
-		if typedVal, ok := val.(T); ok {
-			return &typedVal
-		}
-	}
-	return nil
 }

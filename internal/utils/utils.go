@@ -32,3 +32,12 @@ func GetBoolWithDefault(value interface{}, defaultValue bool) bool {
 
 	return defaultValue
 }
+
+func GetOptionalParam[T any](args map[string]interface{}, key string) *T {
+	if val, ok := args[key]; ok {
+		if typedVal, ok := val.(T); ok {
+			return &typedVal
+		}
+	}
+	return nil
+}
