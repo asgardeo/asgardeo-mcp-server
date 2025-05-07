@@ -57,6 +57,9 @@ func setupServer() *server.MCPServer {
 	authorizeAPITool, authorizeAPIToolImpl := tools.GetAuthorizeAPITool()
 	s.AddTool(authorizeAPITool, authorizeAPIToolImpl)
 
+	generateLoginFlowTool, generateLoginFlowToolImpl := tools.GetGenerateLoginFlowTool()
+	s.AddTool(generateLoginFlowTool, generateLoginFlowToolImpl)
+
 	apiResourceListTool, apiResourceListToolImpl := tools.GetListAPIResourcesTool()
 	s.AddTool(apiResourceListTool, apiResourceListToolImpl)
 
