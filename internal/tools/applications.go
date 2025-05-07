@@ -23,6 +23,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/asgardeo/go/pkg/application"
 	"github.com/asgardeo/mcp/internal/asgardeo"
@@ -347,6 +348,71 @@ func GetAuthorizeAPITool() (mcp.Tool, server.ToolHandlerFunc) {
 	}
 
 	return authorizeAPITool, authorizeAPIToolImpl
+}
+
+func GetGenerateLoginFlowTool() (mcp.Tool, server.ToolHandlerFunc) {
+	client, err := asgardeo.GetClientInstance(context.Background())
+
+	if err != nil {
+		log.Printf("Error initializing client instance: %v", err)
+	}
+
+	generateLoginFlowTool := mcp.NewTool("generate_login_flow",
+		mcp.WithDescription("Generate login flow for an application for given user prompt."),
+		mcp.WithString("user_prompt",
+			mcp.Required(),
+			mcp.Description(
+				"This is the user prompt for the login flow generation. "+
+					"Eg: \"Username and password as first factor and Email OTP as second factor\"",
+			),
+		),
+	)
+
+	generateLoginFlowToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		userPrompt := req.Params.Arguments["user_prompt"].(string)
+
+		loginFlowResponse, err := client.Application.GenerateLoginFlow(ctx, userPrompt)
+		if err != nil {
+			log.Printf("Error generating login flow: %v", err)
+			return nil, err
+		}
+		flowId := loginFlowResponse.OperationId
+		var statusResponse *application.LoginFlowStatusResponse
+		for {
+			statusResponse, err = client.Application.GetLoginFlowGenerationStatus(ctx, *flowId)
+			if err != nil {
+				log.Printf("Error getting login flow generation status: %v", err)
+				return nil, err
+			}
+			if statusResponse.Status != nil {
+				allTrue := true
+				for _, v := range *statusResponse.Status {
+					if v != true {
+						allTrue = false
+						break
+					}
+				}
+				if allTrue {
+					log.Printf("Login flow generation completed successfully.")
+					break
+				}
+			}
+			log.Printf("Login flow generation in progress. Retrying...")
+			time.Sleep(2 * time.Second)
+		}
+		resultResponse, err := client.Application.GetLoginFlowGenerationResult(ctx, *flowId)
+		if err != nil {
+			log.Printf("Error getting login flow generation result: %v", err)
+			return nil, err
+		}
+		jsonData, err := marshalResponse(resultResponse)
+		if err != nil {
+			return nil, err
+		}
+		return mcp.NewToolResultText(jsonData), nil
+	}
+
+	return generateLoginFlowTool, generateLoginFlowToolImpl
 }
 
 func marshalResponse(response interface{}) (string, error) {
