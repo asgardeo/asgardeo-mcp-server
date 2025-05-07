@@ -58,7 +58,7 @@ func GetListAPIResourcesTool() (mcp.Tool, server.ToolHandlerFunc) {
 		filter := utils.GetOptionalParam[string](args, "filter")
 		before := utils.GetOptionalParam[string](args, "before")
 		after := utils.GetOptionalParam[string](args, "after")
-		params := api_resource.GetAPIResourcesParams{
+		params := api_resource.APIResourceListParamsModel{
 			Limit:  limit,
 			Filter: filter,
 			Before: before,
@@ -190,7 +190,7 @@ func GetCreateAPIResourceTool() (mcp.Tool, server.ToolHandlerFunc) {
 		),
 		mcp.WithArray("scopes",
 			mcp.Required(),
-			mcp.DefaultArray([]api_resource.ScopeCreationModel{}),
+			mcp.DefaultArray([]api_resource.ScopeCreateModel{}),
 			mcp.Description("This is the list of scopes for the API resource. Eg: [{\"name\": \"scope1\", \"displayName\": \"Scope 1\", \"description\": \"Description for scope 1\"}, {\"name\": \"scope2\", \"displayName\": \"Scope 2\", \"description\": \"Description for scope 2\"}]"),
 		),
 	)
@@ -199,9 +199,9 @@ func GetCreateAPIResourceTool() (mcp.Tool, server.ToolHandlerFunc) {
 		name := req.Params.Arguments["name"].(string)
 		identifier := req.Params.Arguments["identifier"].(string)
 		inputScopes := req.Params.Arguments["scopes"].([]interface{})
-		scopes := make([]api_resource.ScopeCreationModel, len(inputScopes))
+		scopes := make([]api_resource.ScopeCreateModel, len(inputScopes))
 		for i, inputScope := range inputScopes {
-			scope := api_resource.ScopeCreationModel{}
+			scope := api_resource.ScopeCreateModel{}
 
 			switch scopeData := inputScope.(type) {
 			case string:
@@ -232,7 +232,7 @@ func GetCreateAPIResourceTool() (mcp.Tool, server.ToolHandlerFunc) {
 		}
 
 		requiresAuthorization := req.Params.Arguments["requiresAuthorization"].(bool)
-		newApiResource := api_resource.APIResourceCreationModel{
+		newApiResource := api_resource.APIResourceCreateModel{
 			Name:                  name,
 			Identifier:            identifier,
 			Scopes:                &scopes,

@@ -332,19 +332,19 @@ func GetAuthorizeAPITool() (mcp.Tool, server.ToolHandlerFunc) {
 		for i, s := range rawScopes {
 			scopes[i] = s.(string)
 		}
-		authorizedAPI := application.AddAuthorizedAPIJSONRequestBody{
+		authorizedAPI := application.AuthorizedAPICreateModel{
 			Id:               &id,
 			PolicyIdentifier: &policyIdentifier,
 			Scopes:           &scopes,
 		}
 
-		resp, err := client.Application.AuthorizeAPI(ctx, appId, authorizedAPI)
+		err := client.Application.AuthorizeAPI(ctx, appId, authorizedAPI)
 		if err != nil {
 			log.Printf("Error authorizing API resource: %v", err)
 			return nil, err
 		}
 
-		return mcp.NewToolResultText(fmt.Sprintf("%+v", resp)), nil
+		return mcp.NewToolResultText("API authorization successful."), nil
 	}
 
 	return authorizeAPITool, authorizeAPIToolImpl
@@ -377,7 +377,7 @@ func GetGenerateLoginFlowTool() (mcp.Tool, server.ToolHandlerFunc) {
 			return nil, err
 		}
 		flowId := loginFlowResponse.OperationId
-		var statusResponse *application.LoginFlowStatusResponse
+		var statusResponse *application.LoginFlowStatusResponseModel
 		for {
 			statusResponse, err = client.Application.GetLoginFlowGenerationStatus(ctx, *flowId)
 			if err != nil {
