@@ -172,6 +172,7 @@ func GetCreateAPIResourceTool() (mcp.Tool, server.ToolHandlerFunc) {
 		log.Printf("Error initializing client instance: %v", err)
 	}
 
+	stringTypeSchema := map[string]interface{}{"type": "string"}
 	apiResourceCreateTool := mcp.NewTool("create_api_resource",
 		mcp.WithDescription("Create an API Resource in Asgardeo"),
 
@@ -192,6 +193,7 @@ func GetCreateAPIResourceTool() (mcp.Tool, server.ToolHandlerFunc) {
 			mcp.Required(),
 			mcp.DefaultArray([]api_resource.ScopeCreateModel{}),
 			mcp.Description("This is the list of scopes for the API resource. Eg: [{\"name\": \"scope1\", \"displayName\": \"Scope 1\", \"description\": \"Description for scope 1\"}, {\"name\": \"scope2\", \"displayName\": \"Scope 2\", \"description\": \"Description for scope 2\"}]"),
+			mcp.Items(stringTypeSchema),
 		),
 	)
 
