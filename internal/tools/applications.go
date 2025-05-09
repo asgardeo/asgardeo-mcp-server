@@ -472,6 +472,12 @@ func GetGenerateLoginFlowTool() (mcp.Tool, server.ToolHandlerFunc) {
 
 	generateLoginFlowTool := mcp.NewTool("generate_login_flow",
 		mcp.WithDescription("Generate login flow for an application for given user prompt."),
+		mcp.WithString("app_id",
+			mcp.Required(),
+			mcp.Description(
+				"This is the id of the application for which the login flow is generated.",
+			),
+		),
 		mcp.WithString("user_prompt",
 			mcp.Required(),
 			mcp.Description(
@@ -483,6 +489,7 @@ func GetGenerateLoginFlowTool() (mcp.Tool, server.ToolHandlerFunc) {
 
 	generateLoginFlowToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		userPrompt := req.Params.Arguments["user_prompt"].(string)
+		appId := req.Params.Arguments["app_id"].(string)
 
 		loginFlowResponse, err := client.Application.GenerateLoginFlow(ctx, userPrompt)
 		if err != nil {
@@ -518,11 +525,14 @@ func GetGenerateLoginFlowTool() (mcp.Tool, server.ToolHandlerFunc) {
 			log.Printf("Error getting login flow generation result: %v", err)
 			return nil, err
 		}
-		jsonData, err := marshalResponse(resultResponse)
+		loginFlowResultData := *resultResponse.Data
+		err = client.Application.UpdateLoginFlow(ctx, appId, loginFlowResultData)
+
 		if err != nil {
+			log.Printf("Error updating login flow: %v", err)
 			return nil, err
 		}
-		return mcp.NewToolResultText(jsonData), nil
+		return mcp.NewToolResultText("Login flow generated sucessfully."), nil
 	}
 
 	return generateLoginFlowTool, generateLoginFlowToolImpl
