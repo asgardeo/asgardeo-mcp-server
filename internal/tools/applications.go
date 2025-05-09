@@ -116,6 +116,59 @@ func GetCreateSinglePageAppTool() (mcp.Tool, server.ToolHandlerFunc) {
 	return spaTool, spaToolImpl
 }
 
+func GetCreateWebAppWithSSRTool() (mcp.Tool, server.ToolHandlerFunc) {
+	client, err := asgardeo.GetClientInstance(context.Background())
+
+	if err != nil {
+		log.Printf("Error initializing client instance: %v", err)
+	}
+
+	webappTool := mcp.NewTool("create_webapp_with_ssr",
+		mcp.WithDescription("Create a new regular web application that implements server side rendring in Asgardeo"),
+		mcp.WithString("application_name", mcp.Description("Name of the application"), mcp.Required()),
+		mcp.WithString("redirect_url", mcp.Description("Redirect URL of the application"), mcp.Required()),
+	)
+
+	webappToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		appName := req.Params.Arguments["application_name"].(string)
+		redirectURL := req.Params.Arguments["redirect_url"].(string)
+
+		webapp, err := client.Application.CreateWebAppWithSSR(ctx, appName, redirectURL)
+		if err != nil {
+			log.Printf("Error creating SPA: %v", err)
+			return nil, err
+		}
+
+		baseURL := client.Config.BaseURL
+		response := map[string]interface{}{
+			"application_configurations": map[string]string{
+				"name":          webapp.Name,
+				"id":            webapp.Id,
+				"client_id":     webapp.ClientId,
+				"client_secret": webapp.ClientSecret,
+				"redirect_url":  webapp.RedirectURL,
+				"scope":         webapp.AuthorizedScopes,
+				"response_type": "code",
+			},
+			"oauth_endpoints": map[string]string{
+				"base_url":      baseURL,
+				"authorize_url": fmt.Sprintf("%s/oauth2/authorize", baseURL),
+				"token_url":     fmt.Sprintf("%s/oauth2/token", baseURL),
+				"jwks_url":      fmt.Sprintf("%s/oauth2/jwks", baseURL),
+				"userinfo_url":  fmt.Sprintf("%s/oauth2/userinfo", baseURL),
+			},
+		}
+
+		jsonData, err := marshalResponse(response)
+		if err != nil {
+			return nil, err
+		}
+		return mcp.NewToolResultText(jsonData), nil
+	}
+
+	return webappTool, webappToolImpl
+}
+
 func GetCreateMobileAppTool() (mcp.Tool, server.ToolHandlerFunc) {
 	client, err := asgardeo.GetClientInstance(context.Background())
 

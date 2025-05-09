@@ -42,6 +42,9 @@ func setupServer() *server.MCPServer {
 	spaTool, spaToolImpl := tools.GetCreateSinglePageAppTool()
 	s.AddTool(spaTool, spaToolImpl)
 
+	webAppTool, webAppToolImpl := tools.GetCreateWebAppWithSSRTool()
+	s.AddTool(webAppTool, webAppToolImpl)
+
 	mobileAppTool, mobileAppToolImpl := tools.GetCreateMobileAppTool()
 	s.AddTool(mobileAppTool, mobileAppToolImpl)
 
