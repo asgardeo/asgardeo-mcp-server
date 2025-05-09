@@ -294,6 +294,120 @@ func GetSearchApplicationByClientIdTool() (mcp.Tool, server.ToolHandlerFunc) {
 	return getApplicationByClientIDTool, getApplicationByClientIDToolImpl
 }
 
+func GetUpdateApplicationBasicInfoTool() (mcp.Tool, server.ToolHandlerFunc) {
+	client, err := asgardeo.GetClientInstance(context.Background())
+
+	if err != nil {
+		log.Printf("Error initializing client instance: %v", err)
+	}
+
+	updateApplicationBasicInfoTool := mcp.NewTool("update_application_basic_info",
+		mcp.WithDescription("Update basic information of an application"),
+		mcp.WithString("id", mcp.Description("ID of the application"), mcp.Required()),
+		mcp.WithString("name", mcp.Description("Name of the application")),
+		mcp.WithString("description", mcp.Description("Description of the application")),
+		mcp.WithString("image_url", mcp.Description("URL of the application image icon")),
+		mcp.WithString("access_url", mcp.Description("Access URL of the application")),
+		mcp.WithString("logout_return_url", mcp.Description("A URL of the application to return upon logout")),
+	)
+
+	updateApplicationBasicInfoToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		appId := req.Params.Arguments["id"].(string)
+
+		basicInfoUpdate := application.NewBasicInfoUpdate()
+		if name, ok := req.Params.Arguments["name"]; ok && name != nil {
+			basicInfoUpdate.WithName(name.(string))
+		}
+		if description, ok := req.Params.Arguments["description"]; ok && description != nil {
+			basicInfoUpdate.WithDescription(description.(string))
+		}
+		if imageUrl, ok := req.Params.Arguments["image_url"]; ok && imageUrl != nil {
+			basicInfoUpdate.WithImageUrl(imageUrl.(string))
+		}
+		if accessUrl, ok := req.Params.Arguments["access_url"]; ok && accessUrl != nil {
+			basicInfoUpdate.WithAccessUrl(accessUrl.(string))
+		}
+		if logoutReturnUrl, ok := req.Params.Arguments["logout_return_url"]; ok && logoutReturnUrl != nil {
+			basicInfoUpdate.WithLogoutReturnUrl(logoutReturnUrl.(string))
+		}
+		if name, ok := req.Params.Arguments["name"]; ok && name != nil {
+			basicInfoUpdate.WithName(name.(string))
+		}
+
+		err := client.Application.UpdateBasicInfo(ctx, appId, *basicInfoUpdate)
+		if err != nil {
+			log.Printf("Error updating application: %v", err)
+			return nil, err
+		}
+
+		return mcp.NewToolResultText("Successfully updated the application."), nil
+	}
+
+	return updateApplicationBasicInfoTool, updateApplicationBasicInfoToolImpl
+}
+
+func GetUpdateApplicationOAuthConfigTool() (mcp.Tool, server.ToolHandlerFunc) {
+	client, err := asgardeo.GetClientInstance(context.Background())
+
+	if err != nil {
+		log.Printf("Error initializing client instance: %v", err)
+	}
+
+	updateApplicationOAuthConfigTool := mcp.NewTool("update_application_oauth_config",
+		mcp.WithDescription("Update OAuth/OIDC configurations of an application"),
+		mcp.WithString("id", mcp.Description("ID of the application"), mcp.Required()),
+		mcp.WithArray("redirect_urls", mcp.Description("Redirect URLs of the application")),
+		mcp.WithNumber("user_access_token_expiry_time", mcp.Description("Expiry time of the access token issued on behalf of the user")),
+		mcp.WithNumber("application_access_token_expiry_time", mcp.Description("Expiry time of the access token issued on behalf of the application")),
+		mcp.WithNumber("refresh_token_expiry_time", mcp.Description("Expiry time of the refresh token")),
+		mcp.WithArray("allowed_origins", mcp.Description("Allowed origins for CORS")),
+		mcp.WithBoolean("revoke_tokens_when_idp_session_terminated", mcp.Description("Revoke tokens when IDP session is terminated")),
+		mcp.WithArray("access_token_attributes", mcp.Description("Access token attributes")),
+	)
+
+	updateApplicationOAuthConfigToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		appId := req.Params.Arguments["id"].(string)
+
+		OAuthConfigUpdate := application.NewOAuthConfigUpdate()
+		if redirectURLs, ok := req.Params.Arguments["redirect_urls"]; ok && redirectURLs != nil {
+			urls := convertToStringSlice(redirectURLs)
+			OAuthConfigUpdate.WithCallbackURLs(urls)
+		}
+
+		if allowedOrigins, ok := req.Params.Arguments["allowed_origins"]; ok && allowedOrigins != nil {
+			origins := convertToStringSlice(allowedOrigins)
+			OAuthConfigUpdate.WithAllowedOrigins(origins)
+		}
+
+		if userExpiry, ok := req.Params.Arguments["user_access_token_expiry_time"]; ok && userExpiry != nil {
+			OAuthConfigUpdate.WithUserAccessTokenExpiry(int64(userExpiry.(float64)))
+		}
+
+		if appExpiry, ok := req.Params.Arguments["application_access_token_expiry_time"]; ok && appExpiry != nil {
+			OAuthConfigUpdate.WithApplicationAccessTokenExpiry(int64(appExpiry.(float64)))
+		}
+
+		if refreshExpiry, ok := req.Params.Arguments["refresh_token_expiry_time"]; ok && refreshExpiry != nil {
+			OAuthConfigUpdate.WithRefreshTokenExpiry(int64(refreshExpiry.(float64)))
+		}
+
+		if attributes, ok := req.Params.Arguments["access_token_attributes"]; ok && attributes != nil {
+			attrs := convertToStringSlice(attributes)
+			OAuthConfigUpdate.WithAccessTokenAttributes(attrs)
+		}
+
+		err := client.Application.UpdateOAuthConfig(ctx, appId, *OAuthConfigUpdate)
+		if err != nil {
+			log.Printf("Error updating application: %v", err)
+			return nil, err
+		}
+
+		return mcp.NewToolResultText("Successfully updated the application."), nil
+	}
+
+	return updateApplicationOAuthConfigTool, updateApplicationOAuthConfigToolImpl
+}
+
 func GetAuthorizeAPITool() (mcp.Tool, server.ToolHandlerFunc) {
 	client, err := asgardeo.GetClientInstance(context.Background())
 
@@ -322,8 +436,7 @@ func GetAuthorizeAPITool() (mcp.Tool, server.ToolHandlerFunc) {
 			mcp.Description("This is the list of scope names for the API resource."),
 		),
 	)
-	var authorizeAPIToolImpl server.ToolHandlerFunc
-	authorizeAPIToolImpl = func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	authorizeAPIToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		appId := req.Params.Arguments["appId"].(string)
 		id := req.Params.Arguments["id"].(string)
 		policyIdentifier := req.Params.Arguments["policyIdentifier"].(string)
@@ -422,4 +535,13 @@ func marshalResponse(response interface{}) (string, error) {
 		return "", err
 	}
 	return string(jsonData), nil
+}
+
+func convertToStringSlice(input interface{}) []string {
+	inputSlice := input.([]interface{})
+	result := make([]string, len(inputSlice))
+	for i, v := range inputSlice {
+		result[i] = fmt.Sprintf("%v", v)
+	}
+	return result
 }
