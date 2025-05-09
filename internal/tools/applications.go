@@ -406,16 +406,18 @@ func GetUpdateApplicationOAuthConfigTool() (mcp.Tool, server.ToolHandlerFunc) {
 		log.Printf("Error initializing client instance: %v", err)
 	}
 
+	stringTypeSchema := map[string]interface{}{"type": "string"}
+
 	updateApplicationOAuthConfigTool := mcp.NewTool("update_application_oauth_config",
 		mcp.WithDescription("Update OAuth/OIDC configurations of an application"),
 		mcp.WithString("id", mcp.Description("ID of the application"), mcp.Required()),
-		mcp.WithArray("redirect_urls", mcp.Description("Redirect URLs of the application")),
+		mcp.WithArray("redirect_urls", mcp.Description("Redirect URLs of the application"), mcp.Items(stringTypeSchema)),
 		mcp.WithNumber("user_access_token_expiry_time", mcp.Description("Expiry time of the access token issued on behalf of the user")),
 		mcp.WithNumber("application_access_token_expiry_time", mcp.Description("Expiry time of the access token issued on behalf of the application")),
 		mcp.WithNumber("refresh_token_expiry_time", mcp.Description("Expiry time of the refresh token")),
-		mcp.WithArray("allowed_origins", mcp.Description("Allowed origins for CORS")),
+		mcp.WithArray("allowed_origins", mcp.Description("Allowed origins for CORS"), mcp.Items(stringTypeSchema)),
 		mcp.WithBoolean("revoke_tokens_when_idp_session_terminated", mcp.Description("Revoke tokens when IDP session is terminated")),
-		mcp.WithArray("access_token_attributes", mcp.Description("Access token attributes")),
+		mcp.WithArray("access_token_attributes", mcp.Description("Access token attributes"), mcp.Items(stringTypeSchema)),
 	)
 
 	updateApplicationOAuthConfigToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -468,6 +470,8 @@ func GetAuthorizeAPITool() (mcp.Tool, server.ToolHandlerFunc) {
 		log.Printf("Error initializing client instance: %v", err)
 	}
 
+	stringTypeSchema := map[string]interface{}{"type": "string"}
+
 	authorizeAPITool := mcp.NewTool("authorize_api",
 		mcp.WithDescription("Authorize Asgardeo API"),
 		mcp.WithString("appId",
@@ -487,6 +491,7 @@ func GetAuthorizeAPITool() (mcp.Tool, server.ToolHandlerFunc) {
 			mcp.Required(),
 			mcp.DefaultArray([]string{}),
 			mcp.Description("This is the list of scope names for the API resource."),
+			mcp.Items(stringTypeSchema),
 		),
 	)
 	authorizeAPIToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
