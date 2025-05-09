@@ -463,26 +463,33 @@ func GetAuthorizeAPITool() (mcp.Tool, server.ToolHandlerFunc) {
 	return authorizeAPITool, authorizeAPIToolImpl
 }
 
-func GetGenerateLoginFlowTool() (mcp.Tool, server.ToolHandlerFunc) {
+func GetUpdateLoginFlowTool() (mcp.Tool, server.ToolHandlerFunc) {
 	client, err := asgardeo.GetClientInstance(context.Background())
 
 	if err != nil {
 		log.Printf("Error initializing client instance: %v", err)
 	}
 
-	generateLoginFlowTool := mcp.NewTool("generate_login_flow",
-		mcp.WithDescription("Generate login flow for an application for given user prompt."),
+	updateLoginFlowTool := mcp.NewTool("update_login_flow",
+		mcp.WithDescription("Update login flow in an application for given user prompt."),
+		mcp.WithString("app_id",
+			mcp.Required(),
+			mcp.Description(
+				"This is the id of the application for which the login flow is updated.",
+			),
+		),
 		mcp.WithString("user_prompt",
 			mcp.Required(),
 			mcp.Description(
-				"This is the user prompt for the login flow generation. "+
+				"This is the user prompt for the login flow. "+
 					"Eg: \"Username and password as first factor and Email OTP as second factor\"",
 			),
 		),
 	)
 
-	generateLoginFlowToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	updateLoginFlowToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		userPrompt := req.Params.Arguments["user_prompt"].(string)
+		appId := req.Params.Arguments["app_id"].(string)
 
 		loginFlowResponse, err := client.Application.GenerateLoginFlow(ctx, userPrompt)
 		if err != nil {
@@ -518,14 +525,17 @@ func GetGenerateLoginFlowTool() (mcp.Tool, server.ToolHandlerFunc) {
 			log.Printf("Error getting login flow generation result: %v", err)
 			return nil, err
 		}
-		jsonData, err := marshalResponse(resultResponse)
+		loginFlowResultData := *resultResponse.Data
+		err = client.Application.UpdateLoginFlow(ctx, appId, loginFlowResultData)
+
 		if err != nil {
+			log.Printf("Error updating login flow: %v", err)
 			return nil, err
 		}
-		return mcp.NewToolResultText(jsonData), nil
+		return mcp.NewToolResultText("Login flow generated sucessfully."), nil
 	}
 
-	return generateLoginFlowTool, generateLoginFlowToolImpl
+	return updateLoginFlowTool, updateLoginFlowToolImpl
 }
 
 func marshalResponse(response interface{}) (string, error) {
