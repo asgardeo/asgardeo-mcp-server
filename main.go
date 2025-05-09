@@ -78,6 +78,9 @@ func setupServer() *server.MCPServer {
 	apiResourceCreateTool, apiResourceCreateToolImpl := tools.GetCreateAPIResourceTool()
 	s.AddTool(apiResourceCreateTool, apiResourceCreateToolImpl)
 
+	testUserCreateTool, testUserCreateToolImpl := tools.GetCreateTestUserTool()
+	s.AddTool(testUserCreateTool, testUserCreateToolImpl)
+
 	return s
 }
 
