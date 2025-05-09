@@ -66,8 +66,8 @@ func setupServer() *server.MCPServer {
 	authorizeAPITool, authorizeAPIToolImpl := tools.GetAuthorizeAPITool()
 	s.AddTool(authorizeAPITool, authorizeAPIToolImpl)
 
-	generateLoginFlowTool, generateLoginFlowToolImpl := tools.GetGenerateLoginFlowTool()
-	s.AddTool(generateLoginFlowTool, generateLoginFlowToolImpl)
+	updateLoginFlowTool, updateLoginFlowToolImpl := tools.GetUpdateLoginFlowTool()
+	s.AddTool(updateLoginFlowTool, updateLoginFlowToolImpl)
 
 	apiResourceListTool, apiResourceListToolImpl := tools.GetListAPIResourcesTool()
 	s.AddTool(apiResourceListTool, apiResourceListToolImpl)
@@ -80,6 +80,9 @@ func setupServer() *server.MCPServer {
 
 	apiResourceCreateTool, apiResourceCreateToolImpl := tools.GetCreateAPIResourceTool()
 	s.AddTool(apiResourceCreateTool, apiResourceCreateToolImpl)
+
+	testUserCreateTool, testUserCreateToolImpl := tools.GetCreateTestUserTool()
+	s.AddTool(testUserCreateTool, testUserCreateToolImpl)
 
 	return s
 }
