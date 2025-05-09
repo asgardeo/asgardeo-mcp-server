@@ -5,7 +5,7 @@ go 1.23
 toolchain go1.23.8
 
 require (
-	github.com/asgardeo/go v0.0.7
+	github.com/asgardeo/go v0.0.10
 	github.com/mark3labs/mcp-go v0.21.1
 )
 
