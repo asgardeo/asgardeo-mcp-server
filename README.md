@@ -6,7 +6,17 @@ MCP server to interact with your Asgardeo organization through LLM tools
 ### On Asgardeo
 
 1. Create an M2M application in your Asgardeo organization.
-2. Authorize the management APIs you want the MCP server to consume, to the created M2M application.
+2. Authorize following management APIs
+
+  | API | Scopes |
+|-----|--------|
+| Application Management API (`/api/server/v1/applications`) | `internal_application_mgt_view` `internal_application_mgt_update` `internal_application_mgt_create` |
+| API Resource Management API (`/api/server/v1/api-resources`) | `internal_api_resource_update` `internal_api_resource_create` `internal_api_resource_view` |
+| Identity Provider Management API (`/api/server/v1/identity-providers`) | `internal_idp_view` |
+| Authenticators Management API (`/api/server/v1/authenticators`) | `internal_authenticator_view` |
+| Claim Management API (`/api/server/v1/claim-dialects`) | `internal_claim_meta_view` |
+| SCIM2 Users API (`/scim2/Users`) | `internal_user_mgt_create` |
+
 3. Copy the client ID, and client secret of the M2M application.
 
 ### On your machine
@@ -67,3 +77,14 @@ go build -o asgardeo-mcp
         }
     }
     ```
+
+8. Try out.
+
+    You can try following operations with the tool list available.
+    - List applications
+    - Create a Single Page App, Mobile App or M2M App
+    - Update application basic info or OAuth configs
+    - Add an API resource
+    - Authorize API resource(s) to the application
+    - Configure the login flow with a prompt to your app (limited capabilities only)
+    - Create a test user
