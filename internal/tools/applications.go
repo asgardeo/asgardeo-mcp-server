@@ -516,6 +516,59 @@ func GetAuthorizeAPITool() (mcp.Tool, server.ToolHandlerFunc) {
 	return authorizeAPITool, authorizeAPIToolImpl
 }
 
+func GetListAuthorizedAPITool() (mcp.Tool, server.ToolHandlerFunc) {
+	client, err := asgardeo.GetClientInstance(context.Background())
+
+	if err != nil {
+		log.Printf("Error initializing client instance: %v", err)
+	}
+
+	authorizedAPIListTool := mcp.NewTool("list_authorized_api",
+		mcp.WithDescription("List authorized API resources of an application"),
+		mcp.WithString("app_id",
+			mcp.Required(),
+			mcp.Description("This is the id of the application."),
+		),
+	)
+
+	authorizedAPIListToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		appId := req.Params.Arguments["app_id"].(string)
+
+		resp, err := client.Application.GetAuthorizedAPIs(ctx, appId)
+		if err != nil {
+			log.Printf("Error listing authorized APIs: %v", err)
+			return nil, err
+		}
+		authorizedAPIs := []interface{}{}
+		for _, api := range *resp {
+			authorizedScopes := []interface{}{}
+			for _, scope := range *api.AuthorizedScopes {
+				authorizedScopes = append(authorizedScopes, map[string]interface{}{
+					"id":           *scope.Id,
+					"name":         *scope.Name,
+					"display_name": *scope.DisplayName,
+				})
+			}
+			authorizedAPIs = append(authorizedAPIs, map[string]interface{}{
+				"id":                *api.Id,
+				"identifier":        *api.Identifier,
+				"display_name":      *api.DisplayName,
+				"policy_id":         *api.PolicyId,
+				"type":              *api.Type,
+				"authorized_scopes": authorizedScopes,
+			})
+		}
+
+		jsonData, err := marshalResponse(authorizedAPIs)
+		if err != nil {
+			return nil, err
+		}
+		return mcp.NewToolResultText(jsonData), nil
+	}
+
+	return authorizedAPIListTool, authorizedAPIListToolImpl
+}
+
 func GetUpdateLoginFlowTool() (mcp.Tool, server.ToolHandlerFunc) {
 	client, err := asgardeo.GetClientInstance(context.Background())
 
