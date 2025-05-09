@@ -54,6 +54,12 @@ func setupServer() *server.MCPServer {
 	getAppByClientIdTool, getAppByClientIdToolmpl := tools.GetSearchApplicationByClientIdTool()
 	s.AddTool(getAppByClientIdTool, getAppByClientIdToolmpl)
 
+	getAppUpdateTool, getAppUpdateToolImpl := tools.GetUpdateApplicationBasicInfoTool()
+	s.AddTool(getAppUpdateTool, getAppUpdateToolImpl)
+
+	getAppOAuthConfigUpdateTool, getAppUpdateOAuthConfigToolImpl := tools.GetUpdateApplicationOAuthConfigTool()
+	s.AddTool(getAppOAuthConfigUpdateTool, getAppUpdateOAuthConfigToolImpl)
+
 	authorizeAPITool, authorizeAPIToolImpl := tools.GetAuthorizeAPITool()
 	s.AddTool(authorizeAPITool, authorizeAPIToolImpl)
 
