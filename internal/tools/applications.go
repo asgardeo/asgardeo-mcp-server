@@ -95,7 +95,7 @@ func GetCreateSinglePageAppTool() (mcp.Tool, server.ToolHandlerFunc) {
 				"client_id":     spa.ClientId,
 				"redirect_url":  spa.RedirectURL,
 				"scope":         spa.AuthorizedScopes,
-				"response_type": "code",
+				"application_type": string(spa.AppType),
 			},
 			"oauth_endpoints": map[string]string{
 				"base_url":      baseURL,
@@ -148,7 +148,7 @@ func GetCreateWebAppWithSSRTool() (mcp.Tool, server.ToolHandlerFunc) {
 				"client_secret": webapp.ClientSecret,
 				"redirect_url":  webapp.RedirectURL,
 				"scope":         webapp.AuthorizedScopes,
-				"response_type": "code",
+				"application_type": string(webapp.AppType),
 			},
 			"oauth_endpoints": map[string]string{
 				"base_url":      baseURL,
@@ -200,6 +200,7 @@ func GetCreateMobileAppTool() (mcp.Tool, server.ToolHandlerFunc) {
 				"client_id":    mobileApp.ClientId,
 				"redirect_url": mobileApp.RedirectURL,
 				"scope":        mobileApp.AuthorizedScopes,
+				"application_type": string(mobileApp.AppType),
 			},
 			"oauth_endpoints": map[string]string{
 				"base_url":      baseURL,
@@ -249,6 +250,7 @@ func GetCreateM2MAppTool() (mcp.Tool, server.ToolHandlerFunc) {
 				"id":            m2mApp.Id,
 				"client_id":     m2mApp.ClientId,
 				"client_secret": m2mApp.ClientSecret,
+				"application_type": string(m2mApp.AppType),
 			},
 			"oauth_endpoints": map[string]string{
 				"token_url":    fmt.Sprintf("%s/oauth2/token", baseURL),
@@ -288,12 +290,23 @@ func GetSearchApplicationByNameTool() (mcp.Tool, server.ToolHandlerFunc) {
 			return nil, err
 		}
 
+		baseURL := client.Config.BaseURL
 		response := map[string]interface{}{
 			"application_configurations": map[string]string{
 				"name":          app.Name,
 				"id":            app.Id,
 				"client_id":     app.ClientId,
 				"client_secret": app.ClientSecret,
+				"redirect_url":  app.RedirectURL,
+				"scope":         app.AuthorizedScopes,
+				"application_type": string(app.AppType),
+			},
+			"oauth_endpoints": map[string]string{
+				"base_url":      baseURL,
+				"authorize_url": fmt.Sprintf("%s/oauth2/authorize", baseURL),
+				"token_url":     fmt.Sprintf("%s/oauth2/token", baseURL),
+				"jwks_url":      fmt.Sprintf("%s/oauth2/jwks", baseURL),
+				"userinfo_url":  fmt.Sprintf("%s/oauth2/userinfo", baseURL),
 			},
 		}
 
@@ -328,12 +341,23 @@ func GetSearchApplicationByClientIdTool() (mcp.Tool, server.ToolHandlerFunc) {
 			return nil, err
 		}
 
+		baseURL := client.Config.BaseURL
 		response := map[string]interface{}{
 			"application_configurations": map[string]string{
 				"name":          app.Name,
 				"id":            app.Id,
 				"client_id":     app.ClientId,
 				"client_secret": app.ClientSecret,
+				"redirect_url":  app.RedirectURL,
+				"scope":         app.AuthorizedScopes,
+				"application_type": string(app.AppType),
+			},
+			"oauth_endpoints": map[string]string{
+				"base_url":      baseURL,
+				"authorize_url": fmt.Sprintf("%s/oauth2/authorize", baseURL),
+				"token_url":     fmt.Sprintf("%s/oauth2/token", baseURL),
+				"jwks_url":      fmt.Sprintf("%s/oauth2/jwks", baseURL),
+				"userinfo_url":  fmt.Sprintf("%s/oauth2/userinfo", baseURL),
 			},
 		}
 
