@@ -1,90 +1,209 @@
 # Asgardeo MCP Server
-MCP server to interact with your Asgardeo organization through LLM tools
 
-## How to use
+The Asgardeo MCP Server allows you to manage your Asgardeo organization seamlessly using LLM tools, enabling natural language interactions for various configuration tasks.
+
+> [!IMPORTANT]
+> **Beta Release Notice**  
+> This software is currently in beta and is not recommended for production environments.  
+> - Features, APIs, and functionality are subject to change without prior notice.
+
+### Key Use Cases
+With tools like Claude Desktop, you can:
+
+- **List Applications**: Retrieve a list of all applications in your Asgardeo organization.
+- **Create Applications**: Set up single-page, web, mobile or m2m applications and integrate it with the Asgardeo authentication SDK.
+- **Retrieve Application Details**: Fetch detailed information about specific applications.
+- **Configure Login Flows**: Customize the login flow of an application using natural language prompts and the available tools, enabling seamless user authentication experiences.
+
+#### Demonstrations
+
+- **Listing Applications in Claude**  
+  ![Listing applications in Claude](assets/list-applications-claude.gif)
+
+- **Fetching Application Details in Claude**  
+  ![Getting application details in Claude](assets/get-application-by-name-claude.gif)
+
+---
+
+## How to Use
 
 ### On Asgardeo
 
-1. Create an M2M application in your Asgardeo organization.
-2. Authorize following management APIs
+1. **Create an M2M Application**: Set up an M2M application in your Asgardeo organization.
+2. **Authorize Management APIs**: Grant the following scopes to the application:
 
   | API | Scopes |
-|-----|--------|
-| Application Management API (`/api/server/v1/applications`) | `internal_application_mgt_view` `internal_application_mgt_update` `internal_application_mgt_create` |
-| API Resource Management API (`/api/server/v1/api-resources`) | `internal_api_resource_update` `internal_api_resource_create` `internal_api_resource_view` |
-| Identity Provider Management API (`/api/server/v1/identity-providers`) | `internal_idp_view` |
-| Authenticators Management API (`/api/server/v1/authenticators`) | `internal_authenticator_view` |
-| Claim Management API (`/api/server/v1/claim-dialects`) | `internal_claim_meta_view` |
-| SCIM2 Users API (`/scim2/Users`) | `internal_user_mgt_create` |
+  |-----|--------|
+  | Application Management API (`/api/server/v1/applications`) | `internal_application_mgt_view`, `internal_application_mgt_update`, `internal_application_mgt_create` |
+  | API Resource Management API (`/api/server/v1/api-resources`) | `internal_api_resource_update`, `internal_api_resource_create`, `internal_api_resource_view` |
+  | Identity Provider Management API (`/api/server/v1/identity-providers`) | `internal_idp_view` |
+  | Authenticators Management API (`/api/server/v1/authenticators`) | `internal_authenticator_view` |
+  | Claim Management API (`/api/server/v1/claim-dialects`) | `internal_claim_meta_view` |
+  | SCIM2 Users API (`/scim2/Users`) | `internal_user_mgt_create` |
 
-3. Copy the client ID, and client secret of the M2M application.
+3. **Copy Credentials**: Save the client ID and client secret of the M2M application.
 
-### On your machine
+### On Your Machine
 
-4. Clone the repo.
-5. Install dependencies.
+4. **Clone the Repository**:
+  ```bash
+  git clone <repository-url>
+  ```
+5. **Install Dependencies**:
+  ```bash
+  go mod tidy
+  ```
+6. **Build the Executable**:
+  ```bash
+  go build -o asgardeo-mcp
+  ```
 
-```
-go mod tidy
-```
+7. **Configure Your MCP Client**:
 
-6. Build the repo. This will create an executable named `asgardeo-mcp`.
+#### VS Code (GitHub Copilot)
 
-```bash
-go build -o asgardeo-mcp
-```
-
-7. Configure your MCP client.
-
-- Claude Desktop
-
-  - Open Claude Desktop.
-  - Click on Claude > Settings.
-  - Switch to `Developer` tab.
-  - Click on `Edit Config` button at the bottom. This will point to `claude_desktop_config.json` file in the file explorer.
-  - Open the `claude_desktop_config.json` file in a code editor and in the `mcpServers` object, add the following.
-
-    ```js
-    "asgardeo-mcp": {
-        "command": "<absolute path to the asgardeo-mcp executable>",
-        "args": [],
-        "env": {
-            "ASGARDEO_BASE_URL" : "https://api.asgardeo.io/t/<asgardeo organization>",
-            "ASGARDEO_CLIENT_ID" : "<client ID>",
-            "ASGARDEO_CLIENT_SECRET" : "<client secret>"
-        }
+- Install the GitHub Copilot extension.
+- Open VS Code Settings (`File > Preferences > Settings`).
+- Search for "MCP" and edit the `settings.json` file:
+  ```json
+  "mcp": {
+    "servers": {
+        "asgardeo-mcp-server": {
+            "type": "stdio",
+            "command": "<absolute path to the asgardeo-mcp executable, e.g., /Users/<user directory>/<repository path>/asgardeo-mcp-server/asgardeo-mcp>",
+            "args": [],
+            "env": {
+                "ASGARDEO_BASE_URL" : "https://api.asgardeo.io/t/<asgardeo organization>",
+                "ASGARDEO_CLIENT_ID" : "<client ID>",
+                "ASGARDEO_CLIENT_SECRET" : "<client secret>"
+              }
+            }
     }
-    ```
-
-  - Restart Claude Desktop.
-
-- Cursor
-
-  - Open Cursor.
-  - Click on Cursor > Settings > Cursor Settings.
-  - Switch to `MCP` tab.
-  - Click on `Add new global MCP server` button at the bottom. This will open `mcp.json` file in the editor itself.
-  - In the `mcpServers` object, add the following.
-
-    ```js
-    "asgardeo-mcp": {
-        "command": "<absolute path to the asgardeo-mcp executable>",
-        "args": [],
-        "env": {
-            "ASGARDEO_BASE_URL" : "https://api.asgardeo.io/t/<asgardeo organization>",
-            "ASGARDEO_CLIENT_ID" : "<client ID>",
-            "ASGARDEO_CLIENT_SECRET" : "<client secret>"
-        }
     }
-    ```
+  ```
+- Save the file and start the MCP server from `settings.json`.
 
-8. Try out.
+#### Claude Desktop
 
-    You can try following operations with the tool list available.
-    - List applications
-    - Create a Single Page App, Mobile App or M2M App
-    - Update application basic info or OAuth configs
-    - Add an API resource
-    - Authorize API resource(s) to the application
-    - Configure the login flow with a prompt to your app (limited capabilities only)
-    - Create a test user
+- Open Claude Desktop and navigate to `Settings > Developer`.
+- Edit the `claude_desktop_config.json` file:
+  ```json
+  "asgardeo-mcp": {
+   "command": "<absolute path to the asgardeo-mcp executable, e.g., /Users/<user directory>/<repository path>/asgardeo-mcp-server/asgardeo-mcp>",
+   "args": [],
+   "env": {
+    "ASGARDEO_BASE_URL": "https://api.asgardeo.io/t/<asgardeo organization>",
+    "ASGARDEO_CLIENT_ID": "<client ID>",
+    "ASGARDEO_CLIENT_SECRET": "<client secret>"
+   }
+  }
+  ```
+- Restart Claude Desktop.
+
+#### Cursor
+
+- Open Cursor and navigate to `Settings > MCP`.
+- Edit the `mcp.json` file:
+  ```json
+  "asgardeo-mcp": {
+   "command": "<absolute path to the asgardeo-mcp executable, e.g., /Users/<user directory>/<repository path>/asgardeo-mcp-server/asgardeo-mcp>",
+   "args": [],
+   "env": {
+    "ASGARDEO_BASE_URL": "https://api.asgardeo.io/t/<asgardeo organization>",
+    "ASGARDEO_CLIENT_ID": "<client ID>",
+    "ASGARDEO_CLIENT_SECRET": "<client secret>"
+   }
+  }
+  ```
+
+---
+
+## Available Tools
+
+The Asgardeo MCP Server provides the following tools for interacting with your Asgardeo organization:
+
+### Application Management
+
+| Tool Name | Description | Parameters |
+|-----------|-------------|------------|
+| `list_applications` | Lists all applications in Asgardeo | None |
+| `create_single_page_app` | Creates a new Single Page Application | `application_name` (required): Name of the application<br>`redirect_url` (required): Redirect URL for the application |
+| `create_webapp_with_ssr` | Creates a new web application with server-side rendering | `application_name` (required): Name of the application<br>`redirect_url` (required): Redirect URL for the application |
+| `create_mobile_app` | Creates a new Mobile Application | `application_name` (required): Name of the application<br>`redirect_url` (required): Redirect URL for the application |
+| `create_m2m_app` | Creates a new Machine-to-Machine Application | `application_name` (required): Name of the application |
+| `get_application_by_name` | Gets details of an application by name | `application_name` (required): Name of the application to search for |
+| `get_application_by_client_id` | Gets details of an application by client ID | `client_id` (required): Client ID of the application |
+| `update_application_basic_info` | Updates basic information of an application | `id` (required): ID of the application<br>`name`, `description`, `image_url`, `access_url`, `logout_return_url` (optional) |
+| `update_application_oauth_config` | Updates OAuth/OIDC configurations of an application | `id` (required): ID of the application<br>`redirect_urls`, `allowed_origins`, `user_access_token_expiry_time`, `application_access_token_expiry_time`, `refresh_token_expiry_time`, etc. (optional) |
+| `authorize_api` | Authorizes an application to access an API | `appId` (required): ID of the application<br>`id` (required): ID of the API resource<br>`policyIdentifier` (required, default: "RBAC"): Authorization policy<br>`scopes` (required): Scopes to authorize |
+| `list_authorized_api` | Lists authorized API resources of an application | `app_id` (required): ID of the application |
+| `update_login_flow` | Updates login flow in an application based on a natural language prompt | `app_id` (required): ID of the application<br>`user_prompt` (required): Natural language description of the desired login flow |
+
+### API Resource Management
+
+| Tool Name | Description | Parameters |
+|-----------|-------------|------------|
+| `list_api_resources` | Lists API resources in your Asgardeo organization | `filter` (optional): Filter expression<br>`limit` (optional): Maximum results to return |
+| `search_api_resources_by_name` | Searches for API resources by name | `name` (required): Name of the API resource to search for |
+| `get_api_resource_by_identifier` | Gets an API resource by its identifier | `identifier` (required): Identifier of the API resource |
+| `create_api_resource` | Creates a new API resource | `identifier` (required): Identifier for the API resource<br>`name` (required): Name of the API resource<br>`requiresAuthorization` (required): Whether the API requires authorization<br>`scopes` (required): List of scopes for the API |
+
+### User Management
+
+| Tool Name | Description | Parameters |
+|-----------|-------------|------------|
+| `create_test_user` | Creates a test user in your Asgardeo organization | `username` (required): Username<br>`password` (required): Password<br>`email` (required): Email address<br>`first_name` (required): User's first name<br>`last_name` (required): User's last name<br>`userstore_domain` (optional, default: "DEFAULT"): Userstore domain |
+
+---
+
+## Example Prompts
+
+### Application Management
+
+- **Create a SPA**:
+  ```
+  Create a new Single Page Application named "My Demo App" with redirect URL "https://example.com/callback".
+  ```
+
+- **Update Application**:
+  ```
+  Update my application with ID "abc123" to have a new name "Updated App".
+  ```
+
+### API Resource Management
+
+- **Create and Authorize API**:
+  ```
+  Create a new API resource named "Customer API" and authorize my application to access it with "read:customers" scopes.
+  ```
+
+### User Management
+
+- **Create a User**:
+  ```
+  Create a test user with username "testuser" and email "test@example.com".
+  ```
+
+---
+
+## Troubleshooting
+
+### Authentication & Permissions
+- **Invalid Credentials**: Verify your client ID, client secret, and organization name in the base URL
+- **403 Forbidden**: Check if your M2M application has all required scopes authorized
+
+### Setup & Connection
+- **Build Issues**: Ensure Go 1.18+ is installed, run `go mod tidy` before building
+- **MCP Connection**: Verify executable path is absolute and correct, check permissions (`chmod +x asgardeo-mcp`)
+
+### Getting Help
+If issues persist after troubleshooting:
+- Check [GitHub issues](https://github.com/asgardeo/asgardeo-mcp-server/issues)
+- Create a new detailed issue including error messages and environment info
+- Join the WSO2 community forums for support
+
+---
+
+## Contributing
+
+Contributions are welcome! Submit issues or pull requests via the [GitHub repository](https://github.com/asgardeo/asgardeo-mcp-server/issues).
