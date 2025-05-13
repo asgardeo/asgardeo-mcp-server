@@ -20,13 +20,13 @@ package tools
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 	"time"
 
 	"github.com/asgardeo/go/pkg/application"
 	"github.com/asgardeo/mcp/internal/asgardeo"
+	"github.com/asgardeo/mcp/internal/utils"
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 )
@@ -90,11 +90,11 @@ func GetCreateSinglePageAppTool() (mcp.Tool, server.ToolHandlerFunc) {
 		baseURL := client.Config.BaseURL
 		response := map[string]interface{}{
 			"application_configurations": map[string]string{
-				"name":          spa.Name,
-				"id":            spa.Id,
-				"client_id":     spa.ClientId,
-				"redirect_url":  spa.RedirectURL,
-				"scope":         spa.AuthorizedScopes,
+				"name":             spa.Name,
+				"id":               spa.Id,
+				"client_id":        spa.ClientId,
+				"redirect_url":     spa.RedirectURL,
+				"scope":            spa.AuthorizedScopes,
 				"application_type": string(spa.AppType),
 			},
 			"oauth_endpoints": map[string]string{
@@ -106,7 +106,7 @@ func GetCreateSinglePageAppTool() (mcp.Tool, server.ToolHandlerFunc) {
 			},
 		}
 
-		jsonData, err := marshalResponse(response)
+		jsonData, err := utils.MarshalResponse(response)
 		if err != nil {
 			return nil, err
 		}
@@ -142,12 +142,12 @@ func GetCreateWebAppWithSSRTool() (mcp.Tool, server.ToolHandlerFunc) {
 		baseURL := client.Config.BaseURL
 		response := map[string]interface{}{
 			"application_configurations": map[string]string{
-				"name":          webapp.Name,
-				"id":            webapp.Id,
-				"client_id":     webapp.ClientId,
-				"client_secret": webapp.ClientSecret,
-				"redirect_url":  webapp.RedirectURL,
-				"scope":         webapp.AuthorizedScopes,
+				"name":             webapp.Name,
+				"id":               webapp.Id,
+				"client_id":        webapp.ClientId,
+				"client_secret":    webapp.ClientSecret,
+				"redirect_url":     webapp.RedirectURL,
+				"scope":            webapp.AuthorizedScopes,
 				"application_type": string(webapp.AppType),
 			},
 			"oauth_endpoints": map[string]string{
@@ -159,7 +159,7 @@ func GetCreateWebAppWithSSRTool() (mcp.Tool, server.ToolHandlerFunc) {
 			},
 		}
 
-		jsonData, err := marshalResponse(response)
+		jsonData, err := utils.MarshalResponse(response)
 		if err != nil {
 			return nil, err
 		}
@@ -195,11 +195,11 @@ func GetCreateMobileAppTool() (mcp.Tool, server.ToolHandlerFunc) {
 		baseURL := client.Config.BaseURL
 		response := map[string]interface{}{
 			"application_configurations": map[string]string{
-				"name":         mobileApp.Name,
-				"id":           mobileApp.Id,
-				"client_id":    mobileApp.ClientId,
-				"redirect_url": mobileApp.RedirectURL,
-				"scope":        mobileApp.AuthorizedScopes,
+				"name":             mobileApp.Name,
+				"id":               mobileApp.Id,
+				"client_id":        mobileApp.ClientId,
+				"redirect_url":     mobileApp.RedirectURL,
+				"scope":            mobileApp.AuthorizedScopes,
 				"application_type": string(mobileApp.AppType),
 			},
 			"oauth_endpoints": map[string]string{
@@ -211,7 +211,7 @@ func GetCreateMobileAppTool() (mcp.Tool, server.ToolHandlerFunc) {
 			},
 		}
 
-		jsonData, err := marshalResponse(response)
+		jsonData, err := utils.MarshalResponse(response)
 		if err != nil {
 			return nil, err
 		}
@@ -246,10 +246,10 @@ func GetCreateM2MAppTool() (mcp.Tool, server.ToolHandlerFunc) {
 		baseURL := client.Config.BaseURL
 		response := map[string]interface{}{
 			"application_configurations": map[string]string{
-				"name":          m2mApp.Name,
-				"id":            m2mApp.Id,
-				"client_id":     m2mApp.ClientId,
-				"client_secret": m2mApp.ClientSecret,
+				"name":             m2mApp.Name,
+				"id":               m2mApp.Id,
+				"client_id":        m2mApp.ClientId,
+				"client_secret":    m2mApp.ClientSecret,
 				"application_type": string(m2mApp.AppType),
 			},
 			"oauth_endpoints": map[string]string{
@@ -259,7 +259,7 @@ func GetCreateM2MAppTool() (mcp.Tool, server.ToolHandlerFunc) {
 			},
 		}
 
-		jsonData, err := marshalResponse(response)
+		jsonData, err := utils.MarshalResponse(response)
 		if err != nil {
 			return nil, err
 		}
@@ -293,12 +293,12 @@ func GetSearchApplicationByNameTool() (mcp.Tool, server.ToolHandlerFunc) {
 		baseURL := client.Config.BaseURL
 		response := map[string]interface{}{
 			"application_configurations": map[string]string{
-				"name":          app.Name,
-				"id":            app.Id,
-				"client_id":     app.ClientId,
-				"client_secret": app.ClientSecret,
-				"redirect_url":  app.RedirectURL,
-				"scope":         app.AuthorizedScopes,
+				"name":             app.Name,
+				"id":               app.Id,
+				"client_id":        app.ClientId,
+				"client_secret":    app.ClientSecret,
+				"redirect_url":     app.RedirectURL,
+				"scope":            app.AuthorizedScopes,
 				"application_type": string(app.AppType),
 			},
 			"oauth_endpoints": map[string]string{
@@ -310,7 +310,7 @@ func GetSearchApplicationByNameTool() (mcp.Tool, server.ToolHandlerFunc) {
 			},
 		}
 
-		jsonData, err := marshalResponse(response)
+		jsonData, err := utils.MarshalResponse(response)
 		if err != nil {
 			return nil, err
 		}
@@ -344,12 +344,12 @@ func GetSearchApplicationByClientIdTool() (mcp.Tool, server.ToolHandlerFunc) {
 		baseURL := client.Config.BaseURL
 		response := map[string]interface{}{
 			"application_configurations": map[string]string{
-				"name":          app.Name,
-				"id":            app.Id,
-				"client_id":     app.ClientId,
-				"client_secret": app.ClientSecret,
-				"redirect_url":  app.RedirectURL,
-				"scope":         app.AuthorizedScopes,
+				"name":             app.Name,
+				"id":               app.Id,
+				"client_id":        app.ClientId,
+				"client_secret":    app.ClientSecret,
+				"redirect_url":     app.RedirectURL,
+				"scope":            app.AuthorizedScopes,
 				"application_type": string(app.AppType),
 			},
 			"oauth_endpoints": map[string]string{
@@ -361,7 +361,7 @@ func GetSearchApplicationByClientIdTool() (mcp.Tool, server.ToolHandlerFunc) {
 			},
 		}
 
-		jsonData, err := marshalResponse(response)
+		jsonData, err := utils.MarshalResponse(response)
 		if err != nil {
 			return nil, err
 		}
@@ -487,6 +487,67 @@ func GetUpdateApplicationOAuthConfigTool() (mcp.Tool, server.ToolHandlerFunc) {
 	return updateApplicationOAuthConfigTool, updateApplicationOAuthConfigToolImpl
 }
 
+func GetUpdateApplicationClaimConfigTool() (mcp.Tool, server.ToolHandlerFunc) {
+	client, err := asgardeo.GetClientInstance(context.Background())
+
+	if err != nil {
+		log.Printf("Error initializing client instance: %v", err)
+	}
+
+	stringTypeSchema := map[string]interface{}{"type": "string"}
+
+	updateApplicationClaimConfigTool := mcp.NewTool("update_application_claim_config",
+		mcp.WithDescription("Update claim configurations of an application."),
+		mcp.WithString("id",
+			mcp.Description("ID of the application"),
+			mcp.Required(),
+		),
+		mcp.WithArray("claims",
+			mcp.Description("List of claims to be added as requested claims in the application. Eg: list of URIs like http://wso2.org/claims/username, http://wso2.org/claims/emailaddress"),
+			mcp.Items(stringTypeSchema),
+			mcp.Required(),
+		),
+	)
+
+	updateApplicationClaimConfigToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		appId := req.Params.Arguments["id"].(string)
+		claimsInput, ok := req.Params.Arguments["claims"].([]interface{})
+		if !ok {
+			return nil, fmt.Errorf("invalid claim format: expected an array of strings")
+		}
+
+		claimConfigs := make([]application.RequestedClaimModel, len(claimsInput))
+		mandatory := false
+
+		for i, claimInput := range claimsInput {
+			uri, uriOk := claimInput.(string)
+			if !uriOk {
+				return nil, fmt.Errorf("invalid claim URI at index %d: expected a string", i)
+			}
+
+			claimConfigs[i] = application.RequestedClaimModel{
+				Claim: application.ClaimModel{
+					Uri: uri,
+				},
+				Mandatory: &mandatory,
+			}
+		}
+
+		claimConfiguration := application.ApplicationClaimConfigurationUpdateModel{
+			RequestedClaims: &claimConfigs,
+		}
+		err := client.Application.UpdateClaimConfig(ctx, appId, claimConfiguration)
+		if err != nil {
+			log.Printf("Error updating the claim configuration of the application: %v", err)
+			return nil, err
+		}
+
+		return mcp.NewToolResultText("Successfully updated the claim configuration of the application."), nil
+	}
+
+	return updateApplicationClaimConfigTool, updateApplicationClaimConfigToolImpl
+}
+
 func GetAuthorizeAPITool() (mcp.Tool, server.ToolHandlerFunc) {
 	client, err := asgardeo.GetClientInstance(context.Background())
 
@@ -588,7 +649,7 @@ func GetListAuthorizedAPITool() (mcp.Tool, server.ToolHandlerFunc) {
 			})
 		}
 
-		jsonData, err := marshalResponse(authorizedAPIs)
+		jsonData, err := utils.MarshalResponse(authorizedAPIs)
 		if err != nil {
 			return nil, err
 		}
@@ -671,15 +732,6 @@ func GetUpdateLoginFlowTool() (mcp.Tool, server.ToolHandlerFunc) {
 	}
 
 	return updateLoginFlowTool, updateLoginFlowToolImpl
-}
-
-func marshalResponse(response interface{}) (string, error) {
-	jsonData, err := json.MarshalIndent(response, "", "  ")
-	if err != nil {
-		log.Printf("Error marshaling response: %v", err)
-		return "", err
-	}
-	return string(jsonData), nil
 }
 
 func convertToStringSlice(input interface{}) []string {

@@ -63,6 +63,9 @@ func setupServer() *server.MCPServer {
 	getAppOAuthConfigUpdateTool, getAppUpdateOAuthConfigToolImpl := tools.GetUpdateApplicationOAuthConfigTool()
 	s.AddTool(getAppOAuthConfigUpdateTool, getAppUpdateOAuthConfigToolImpl)
 
+	updateApplicationClaimConfigTool, updateApplicationClaimConfigToolImpl := tools.GetUpdateApplicationClaimConfigTool()
+	s.AddTool(updateApplicationClaimConfigTool, updateApplicationClaimConfigToolImpl)
+
 	authorizeAPITool, authorizeAPIToolImpl := tools.GetAuthorizeAPITool()
 	s.AddTool(authorizeAPITool, authorizeAPIToolImpl)
 
@@ -84,8 +87,11 @@ func setupServer() *server.MCPServer {
 	apiResourceCreateTool, apiResourceCreateToolImpl := tools.GetCreateAPIResourceTool()
 	s.AddTool(apiResourceCreateTool, apiResourceCreateToolImpl)
 
-	testUserCreateTool, testUserCreateToolImpl := tools.GetCreateTestUserTool()
-	s.AddTool(testUserCreateTool, testUserCreateToolImpl)
+	userCreateTool, userCreateToolImpl := tools.GetCreateUserTool()
+	s.AddTool(userCreateTool, userCreateToolImpl)
+
+	listClaimsTool, listClaimsToolImpl := tools.GetListClaimsTool()
+	s.AddTool(listClaimsTool, listClaimsToolImpl)
 
 	return s
 }

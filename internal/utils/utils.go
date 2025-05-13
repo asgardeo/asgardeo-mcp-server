@@ -1,5 +1,10 @@
 package utils
 
+import (
+	"encoding/json"
+	"log"
+)
+
 func GetStringSlice(arg map[string]interface{}, key string) []string {
 	if val, ok := arg[key]; ok && val != nil {
 		if slice, ok := val.([]string); ok {
@@ -40,4 +45,13 @@ func GetOptionalParam[T any](args map[string]interface{}, key string) *T {
 		}
 	}
 	return nil
+}
+
+func MarshalResponse(response interface{}) (string, error) {
+	jsonData, err := json.MarshalIndent(response, "", "  ")
+	if err != nil {
+		log.Printf("Error marshaling response: %v", err)
+		return "", err
+	}
+	return string(jsonData), nil
 }

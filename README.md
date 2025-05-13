@@ -40,6 +40,7 @@ With tools like Claude Desktop, you can:
   | Authenticators Management API (`/api/server/v1/authenticators`) | `internal_authenticator_view` |
   | Claim Management API (`/api/server/v1/claim-dialects`) | `internal_claim_meta_view` |
   | SCIM2 Users API (`/scim2/Users`) | `internal_user_mgt_create` |
+  | OIDC Scope Management API (`/api/server/v1/oidc/scopes`) | `internal_oidc_scope_mgt_view` |
 
 3. **Copy Credentials**: Save the client ID and client secret of the M2M application.
 
@@ -135,6 +136,7 @@ The Asgardeo MCP Server provides the following tools for interacting with your A
 | `get_application_by_client_id` | Gets details of an application by client ID | `client_id` (required): Client ID of the application |
 | `update_application_basic_info` | Updates basic information of an application | `id` (required): ID of the application<br>`name`, `description`, `image_url`, `access_url`, `logout_return_url` (optional) |
 | `update_application_oauth_config` | Updates OAuth/OIDC configurations of an application | `id` (required): ID of the application<br>`redirect_urls`, `allowed_origins`, `user_access_token_expiry_time`, `application_access_token_expiry_time`, `refresh_token_expiry_time`, etc. (optional) |
+| `update_application_claim_config` | Updates claim configurations of an application | `id` (required): ID of the application<br>`claims` (required): Requested claims |
 | `authorize_api` | Authorizes an application to access an API | `appId` (required): ID of the application<br>`id` (required): ID of the API resource<br>`policyIdentifier` (required, default: "RBAC"): Authorization policy<br>`scopes` (required): Scopes to authorize |
 | `list_authorized_api` | Lists authorized API resources of an application | `app_id` (required): ID of the application |
 | `update_login_flow` | Updates login flow in an application based on a natural language prompt | `app_id` (required): ID of the application<br>`user_prompt` (required): Natural language description of the desired login flow |
@@ -152,7 +154,13 @@ The Asgardeo MCP Server provides the following tools for interacting with your A
 
 | Tool Name | Description | Parameters |
 |-----------|-------------|------------|
-| `create_test_user` | Creates a test user in your Asgardeo organization | `username` (required): Username<br>`password` (required): Password<br>`email` (required): Email address<br>`first_name` (required): User's first name<br>`last_name` (required): User's last name<br>`userstore_domain` (optional, default: "DEFAULT"): Userstore domain |
+| `create_user` | Creates a user in your Asgardeo organization | `username` (required): Username<br>`password` (required): Password<br>`email` (required): Email address<br>`first_name` (required): User's first name<br>`last_name` (required): User's last name<br>`userstore_domain` (optional, default: "DEFAULT"): Userstore domain |
+
+### Claim Management
+
+| Tool Name | Description | Parameters |
+|-----------|-------------|------------|
+| `list_claims` | Lists claims in your Asgardeo organization | None |
 
 ---
 
@@ -170,6 +178,16 @@ The Asgardeo MCP Server provides the following tools for interacting with your A
   Update my application with ID "abc123" to have a new name "Updated App".
   ```
 
+- **Update Application Login Flow**:
+  ```
+  Update the login flow of my application with ID "abc123" to Username and Password as the first step and Email OTP as the second step.
+  ```
+
+- **Update Application Claim Configuration**:
+  ```
+  Update the claim configuration of my application with ID "abc123" to include "username", and "last_name".
+  ```
+
 ### API Resource Management
 
 - **Create and Authorize API**:
@@ -181,7 +199,14 @@ The Asgardeo MCP Server provides the following tools for interacting with your A
 
 - **Create a User**:
   ```
-  Create a test user with username "testuser" and email "test@example.com".
+  Create a test user with the username and email address 'test@example.com'.
+  ```
+
+### Claim Management
+
+- **Get Claim list**:
+  ```
+  List all claims in my Asgardeo organization.
   ```
 
 ---
