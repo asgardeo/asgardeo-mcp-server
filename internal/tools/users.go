@@ -29,43 +29,43 @@ import (
 	"github.com/mark3labs/mcp-go/server"
 )
 
-func GetCreateTestUserTool() (mcp.Tool, server.ToolHandlerFunc) {
+func GetCreateUserTool() (mcp.Tool, server.ToolHandlerFunc) {
 	client, err := asgardeo.GetClientInstance(context.Background())
 
 	if err != nil {
 		log.Printf("Error initializing client instance: %v", err)
 	}
 
-	testUserCreateTool := mcp.NewTool("create_test_user",
-		mcp.WithDescription("Create a test user in Asgardeo"),
+	userCreateTool := mcp.NewTool("create_user",
+		mcp.WithDescription("Create a user in Asgardeo"),
 
 		mcp.WithString("username",
 			mcp.Required(),
-			mcp.Description("This is the username of the test user. This should be an email address."),
+			mcp.Description("This is the username of the user. This should be an email address."),
 		),
 		mcp.WithString("password",
 			mcp.Required(),
-			mcp.Description("This is the password of the test user. Eg; atGHL1234#"),
+			mcp.Description("This is the password of the user. Eg; atGHL1234#"),
 		),
 		mcp.WithString("email",
 			mcp.Required(),
-			mcp.Description("This is the email of the test user."),
+			mcp.Description("This is the email of the user."),
 		),
 		mcp.WithString("first_name",
 			mcp.Required(),
-			mcp.Description("This is the first name of the test user."),
+			mcp.Description("This is the first name of the user."),
 		),
 		mcp.WithString("last_name",
 			mcp.Required(),
-			mcp.Description("This is the last name of the test user."),
+			mcp.Description("This is the last name of the user."),
 		),
 		mcp.WithString("userstore_domain",
-			mcp.Description("This is the userstore domain of the test user."),
+			mcp.Description("This is the userstore domain of the user."),
 			mcp.DefaultString("DEFAULT"),
 		),
 	)
 
-	testUserCreateToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	userCreateToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		username := req.Params.Arguments["username"].(string)
 		password := req.Params.Arguments["password"].(string)
 		email := req.Params.Arguments["email"].(string)
@@ -76,19 +76,19 @@ func GetCreateTestUserTool() (mcp.Tool, server.ToolHandlerFunc) {
 			userstoreDomain = req.Params.Arguments["userstore_domain"].(string)
 		}
 
-		testUser := user.UserCreateModel{
+		user := user.UserCreateModel{
 			Username:  userstoreDomain + "/" + username,
 			Password:  password,
 			Email:     email,
 			FirstName: firstName,
 			LastName:  lastName,
 		}
-		resp, err := client.User.CreateUser(ctx, testUser)
+		resp, err := client.User.CreateUser(ctx, user)
 		if err != nil {
-			log.Printf("Error creating test user: %v", err)
+			log.Printf("Error creating the user: %v", err)
 			return nil, err
 		}
 		return mcp.NewToolResultText(fmt.Sprintf("%+v", resp)), nil
 	}
-	return testUserCreateTool, testUserCreateToolImpl
+	return userCreateTool, userCreateToolImpl
 }

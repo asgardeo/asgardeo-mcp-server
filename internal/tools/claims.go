@@ -24,6 +24,7 @@ import (
 
 	"github.com/asgardeo/go/pkg/claim"
 	"github.com/asgardeo/mcp/internal/asgardeo"
+	"github.com/asgardeo/mcp/internal/utils"
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 )
@@ -48,7 +49,7 @@ func GetListClaimsTool() (mcp.Tool, server.ToolHandlerFunc) {
 			log.Printf("Error listing claims: %v", err)
 			return nil, err
 		}
-		jsonData, err := marshalResponse(resp)
+		jsonData, err := utils.MarshalResponse(resp)
 		if err != nil {
 			return nil, err
 		}
