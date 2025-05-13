@@ -487,6 +487,67 @@ func GetUpdateApplicationOAuthConfigTool() (mcp.Tool, server.ToolHandlerFunc) {
 	return updateApplicationOAuthConfigTool, updateApplicationOAuthConfigToolImpl
 }
 
+func GetUpdateApplicationClaimConfigTool() (mcp.Tool, server.ToolHandlerFunc) {
+	client, err := asgardeo.GetClientInstance(context.Background())
+
+	if err != nil {
+		log.Printf("Error initializing client instance: %v", err)
+	}
+
+	stringTypeSchema := map[string]interface{}{"type": "string"}
+
+	updateApplicationClaimConfigTool := mcp.NewTool("update_application_claim_config",
+		mcp.WithDescription("Update claim configurations of an application."),
+		mcp.WithString("id",
+			mcp.Description("ID of the application"),
+			mcp.Required(),
+		),
+		mcp.WithArray("claims",
+			mcp.Description("List of claims to be added as requested claims in the application. Eg: list of URIs like http://wso2.org/claims/username, http://wso2.org/claims/emailaddress"),
+			mcp.Items(stringTypeSchema),
+			mcp.Required(),
+		),
+	)
+
+	updateApplicationClaimConfigToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		appId := req.Params.Arguments["id"].(string)
+		claimsInput, ok := req.Params.Arguments["claims"].([]interface{})
+		if !ok {
+			return nil, fmt.Errorf("invalid claim format: expected an array of strings")
+		}
+
+		claimConfigs := make([]application.RequestedClaimModel, len(claimsInput))
+		mandatory := false
+
+		for i, claimInput := range claimsInput {
+			uri, uriOk := claimInput.(string)
+			if !uriOk {
+				return nil, fmt.Errorf("invalid claim URI at index %d: expected a string", i)
+			}
+
+			claimConfigs[i] = application.RequestedClaimModel{
+				Claim: application.ClaimModel{
+					Uri: uri,
+				},
+				Mandatory: &mandatory,
+			}
+		}
+
+		claimConfiguration := application.ApplicationClaimConfigurationUpdateModel{
+			RequestedClaims: &claimConfigs,
+		}
+		err := client.Application.UpdateClaimConfig(ctx, appId, claimConfiguration)
+		if err != nil {
+			log.Printf("Error updating the claim configuration of the application: %v", err)
+			return nil, err
+		}
+
+		return mcp.NewToolResultText("Successfully updated the claim configuration of the application."), nil
+	}
+
+	return updateApplicationClaimConfigTool, updateApplicationClaimConfigToolImpl
+}
+
 func GetAuthorizeAPITool() (mcp.Tool, server.ToolHandlerFunc) {
 	client, err := asgardeo.GetClientInstance(context.Background())
 
