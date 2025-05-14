@@ -84,7 +84,7 @@ for os in "${oses[@]}"; do
   os_dir="../$os"
   
   if [ -d "$os_dir" ]; then
-    release_artifact_folder="openmcpauthproxy_${os}-v${NEW_VERSION}"
+    release_artifact_folder="asgardeo_mcp_server_${os}-v${NEW_VERSION}"
     mkdir -p "$release_artifact_folder"
 
     cp -r $os_dir/* "$release_artifact_folder"
