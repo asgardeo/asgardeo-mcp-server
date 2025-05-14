@@ -3,9 +3,9 @@
 The Asgardeo MCP Server allows you to manage your Asgardeo organization seamlessly using LLM tools, enabling natural language interactions for various configuration tasks.
 
 > [!IMPORTANT]
-> **Beta Release Notice**  
-> This software is currently in beta and is not recommended for production environments.  
-> - Features, APIs, and functionality are subject to change without prior notice.
+> **Experimental Feature Notice**  
+> This software includes experimental functionality and is not intended for use in production environments.
+> Features, APIs, and functionality may change as the implementation evolves without prior notice.
 
 ### Key Use Cases
 With tools like Claude Desktop, you can:
