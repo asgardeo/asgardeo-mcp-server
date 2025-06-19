@@ -145,7 +145,6 @@ func GetCreateWebAppWithSSRTool() (mcp.Tool, server.ToolHandlerFunc) {
 				"name":             webapp.Name,
 				"id":               webapp.Id,
 				"client_id":        webapp.ClientId,
-				"client_secret":    webapp.ClientSecret,
 				"redirect_url":     webapp.RedirectURL,
 				"scope":            webapp.AuthorizedScopes,
 				"application_type": string(webapp.AppType),
@@ -242,14 +241,12 @@ func GetCreateM2MAppTool() (mcp.Tool, server.ToolHandlerFunc) {
 			return nil, err
 		}
 
-		// todo: Need to decide on exposing the client secret to the user here which is the LLM
 		baseURL := client.Config.BaseURL
 		response := map[string]interface{}{
 			"application_configurations": map[string]string{
 				"name":             m2mApp.Name,
 				"id":               m2mApp.Id,
 				"client_id":        m2mApp.ClientId,
-				"client_secret":    m2mApp.ClientSecret,
 				"application_type": string(m2mApp.AppType),
 			},
 			"oauth_endpoints": map[string]string{
@@ -296,7 +293,6 @@ func GetSearchApplicationByNameTool() (mcp.Tool, server.ToolHandlerFunc) {
 				"name":             app.Name,
 				"id":               app.Id,
 				"client_id":        app.ClientId,
-				"client_secret":    app.ClientSecret,
 				"redirect_url":     app.RedirectURL,
 				"scope":            app.AuthorizedScopes,
 				"application_type": string(app.AppType),
@@ -347,7 +343,6 @@ func GetSearchApplicationByClientIdTool() (mcp.Tool, server.ToolHandlerFunc) {
 				"name":             app.Name,
 				"id":               app.Id,
 				"client_id":        app.ClientId,
-				"client_secret":    app.ClientSecret,
 				"redirect_url":     app.RedirectURL,
 				"scope":            app.AuthorizedScopes,
 				"application_type": string(app.AppType),
