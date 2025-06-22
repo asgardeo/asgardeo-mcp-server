@@ -22,3 +22,11 @@ func Load() (baseURL, clientID, clientSecret string, certPath *string, err error
 	}
 	return
 }
+
+func GetProductName() string {
+	productMode := os.Getenv("PRODUCT_MODE")
+	if productMode == ProductModes.WSO2IS {
+		return ProductNames.WSO2IS
+	}
+	return ProductNames.Asgardeo
+}

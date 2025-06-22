@@ -25,11 +25,13 @@ import (
 
 	"github.com/asgardeo/go/pkg/user"
 	"github.com/asgardeo/mcp/internal/asgardeo"
+	"github.com/asgardeo/mcp/internal/config"
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 )
 
 func GetCreateUserTool() (mcp.Tool, server.ToolHandlerFunc) {
+	productName := config.GetProductName()
 	client, err := asgardeo.GetClientInstance(context.Background())
 
 	if err != nil {
@@ -37,7 +39,7 @@ func GetCreateUserTool() (mcp.Tool, server.ToolHandlerFunc) {
 	}
 
 	userCreateTool := mcp.NewTool("create_user",
-		mcp.WithDescription("Create a user in Asgardeo"),
+		mcp.WithDescription(fmt.Sprintf("Create a user in %s", productName)),
 
 		mcp.WithString("username",
 			mcp.Required(),

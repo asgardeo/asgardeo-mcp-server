@@ -20,23 +20,26 @@ package tools
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	"github.com/asgardeo/go/pkg/claim"
 	"github.com/asgardeo/mcp/internal/asgardeo"
+	"github.com/asgardeo/mcp/internal/config"
 	"github.com/asgardeo/mcp/internal/utils"
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 )
 
 func GetListClaimsTool() (mcp.Tool, server.ToolHandlerFunc) {
+	productName := config.GetProductName()
 	client, err := asgardeo.GetClientInstance(context.Background())
 	if err != nil {
 		log.Printf("Error initializing client instance: %v", err)
 	}
 
 	listClaimsTool := mcp.NewTool("list_claims",
-		mcp.WithDescription("List all claims in Asgardeo"),
+		mcp.WithDescription(fmt.Sprintf("List all claims in %s", productName)),
 	)
 
 	listClaimsToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
