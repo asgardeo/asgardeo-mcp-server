@@ -18,6 +18,21 @@
 
 package config
 
+const (
+	BASE_URL_PARAM         = "BASE_URL"
+	CLIENT_ID_PARAM        = "CLIENT_ID"
+	CLIENT_SECRET_PARAM    = "CLIENT_SECRET"
+	CERTIFICATE_PATH_PARAM = "CERT_PATH"
+	PRODUCT_MODE_PARAM     = "PRODUCT_MODE"
+)
+
+// Deprecated constants for backward compatibility
+const (
+	ASGARDEO_BASE_URL_PARAM      = "ASGARDEO_BASE_URL"
+	ASGARDEO_CLIENT_ID_PARAM     = "ASGARDEO_CLIENT_ID"
+	ASGARDEO_CLIENT_SECRET_PARAM = "ASGARDEO_CLIENT_SECRET"
+)
+
 var ProductModes = struct {
 	WSO2IS   string
 	Asgardeo string

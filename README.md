@@ -1,6 +1,6 @@
 # Asgardeo MCP Server
 
-The Asgardeo MCP Server allows you to manage your Asgardeo or WSO2 Identity Server organization seamlessly using LLM tools, enabling natural language interactions for various configuration tasks.
+The Asgardeo MCP Server allows you to manage your Asgardeo organization or WSO2 Identity Server deployment seamlessly using LLM tools, enabling natural language interactions for various configuration tasks.
 
 > [!IMPORTANT]
 > **Experimental Feature Notice**  
@@ -29,7 +29,7 @@ With tools like Claude Desktop, you can:
 
 ### On Asgardeo / WSO2 Identity Server
 
-1. **Create an M2M Application**: Set up an M2M application in your organization
+1. **Create an M2M Application**: Set up an M2M application in your organization.
 2. **Authorize Management APIs**: Grant the following scopes to the application:
 
   | API | Scopes |
@@ -118,7 +118,7 @@ With tools like Claude Desktop, you can:
   ```
 
 > [!NOTE]
-> - If you are using a WSO2 Identity Server, you need to set an additional environment variable named `PRODUCT_MODE` to `wso2is`.
+> - If you are using the WSO2 Identity Server, you need to set an additional environment variable named `PRODUCT_MODE` to `wso2is`.
 > - Also, replace the `ASGARDEO_BASE_URL` with your WSO2 Identity Server base URL (e.g., `https://<your-wso2is-host>/t/<tenant-domain>`).
 > - Additionally, if you are using WSO2 Identity Server for local development or in internal networks, you may need to set the certificate authority (CA) for the server to avoid SSL errors. You can do this by setting the `CERT_PATH` environment variable to the path of your CA certificate file.
 
@@ -168,7 +168,7 @@ The Asgardeo MCP Server provides the following tools for interacting with your o
 | `list_claims` | Lists claims in your organization | None |
 
 > [!NOTE]
-> If you are using a WSO2 Identity Server and planning to use `update_login_flow` tool, make sure to follow the steps in [Subscribe to AI features](https://is.docs.wso2.com/en/next/get-started/subscribe-to-ai-features/).
+> If you are using the WSO2 Identity Server and planning to use `update_login_flow` tool, make sure to follow the steps in [Subscribe to AI features](https://is.docs.wso2.com/en/next/get-started/subscribe-to-ai-features/).
 ---
 
 ## Example Prompts
