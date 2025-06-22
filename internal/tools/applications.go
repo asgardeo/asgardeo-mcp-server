@@ -26,20 +26,22 @@ import (
 
 	"github.com/asgardeo/go/pkg/application"
 	"github.com/asgardeo/mcp/internal/asgardeo"
+	"github.com/asgardeo/mcp/internal/config"
 	"github.com/asgardeo/mcp/internal/utils"
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 )
 
 func GetListApplicationsTool() (mcp.Tool, server.ToolHandlerFunc) {
+	productName := config.GetProductName()
 	client, err := asgardeo.GetClientInstance(context.Background())
 
 	if err != nil {
 		log.Printf("Error initializing client instance: %v", err)
 	}
-	// Register ListAsgardeoApplication tool
+
 	appListTool := mcp.NewTool("list_applications",
-		mcp.WithDescription("List all applications in Asgardeo"),
+		mcp.WithDescription(fmt.Sprintf("List all applications in %s", productName)),
 	)
 
 	appListToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -65,6 +67,7 @@ func GetListApplicationsTool() (mcp.Tool, server.ToolHandlerFunc) {
 }
 
 func GetCreateSinglePageAppTool() (mcp.Tool, server.ToolHandlerFunc) {
+	productName := config.GetProductName()
 	client, err := asgardeo.GetClientInstance(context.Background())
 
 	if err != nil {
@@ -72,7 +75,7 @@ func GetCreateSinglePageAppTool() (mcp.Tool, server.ToolHandlerFunc) {
 	}
 
 	spaTool := mcp.NewTool("create_single_page_app",
-		mcp.WithDescription("Create a new Single Page Application in Asgardeo"),
+		mcp.WithDescription(fmt.Sprintf("Create a new Single Page Application in %s", productName)),
 		mcp.WithString("application_name", mcp.Description("Name of the application"), mcp.Required()),
 		mcp.WithString("redirect_url", mcp.Description("Redirect URL of the application"), mcp.Required()),
 	)
@@ -117,6 +120,7 @@ func GetCreateSinglePageAppTool() (mcp.Tool, server.ToolHandlerFunc) {
 }
 
 func GetCreateWebAppWithSSRTool() (mcp.Tool, server.ToolHandlerFunc) {
+	productName := config.GetProductName()
 	client, err := asgardeo.GetClientInstance(context.Background())
 
 	if err != nil {
@@ -124,7 +128,7 @@ func GetCreateWebAppWithSSRTool() (mcp.Tool, server.ToolHandlerFunc) {
 	}
 
 	webappTool := mcp.NewTool("create_webapp_with_ssr",
-		mcp.WithDescription("Create a new regular web application that implements server side rendring in Asgardeo"),
+		mcp.WithDescription(fmt.Sprintf("Create a new regular web application that implements server side rendring in %s", productName)),
 		mcp.WithString("application_name", mcp.Description("Name of the application"), mcp.Required()),
 		mcp.WithString("redirect_url", mcp.Description("Redirect URL of the application"), mcp.Required()),
 	)
@@ -169,6 +173,7 @@ func GetCreateWebAppWithSSRTool() (mcp.Tool, server.ToolHandlerFunc) {
 }
 
 func GetCreateMobileAppTool() (mcp.Tool, server.ToolHandlerFunc) {
+	productName := config.GetProductName()
 	client, err := asgardeo.GetClientInstance(context.Background())
 
 	if err != nil {
@@ -176,7 +181,7 @@ func GetCreateMobileAppTool() (mcp.Tool, server.ToolHandlerFunc) {
 	}
 
 	mobileAppTool := mcp.NewTool("create_mobile_app",
-		mcp.WithDescription("Create a new Mobile Application in Asgardeo"),
+		mcp.WithDescription(fmt.Sprintf("Create a new Mobile Application in %s", productName)),
 		mcp.WithString("application_name", mcp.Description("Name of the application"), mcp.Required()),
 		mcp.WithString("redirect_url", mcp.Description("Redirect URL of the application"), mcp.Required()),
 	)
@@ -221,6 +226,7 @@ func GetCreateMobileAppTool() (mcp.Tool, server.ToolHandlerFunc) {
 }
 
 func GetCreateM2MAppTool() (mcp.Tool, server.ToolHandlerFunc) {
+	productName := config.GetProductName()
 	client, err := asgardeo.GetClientInstance(context.Background())
 
 	if err != nil {
@@ -228,7 +234,7 @@ func GetCreateM2MAppTool() (mcp.Tool, server.ToolHandlerFunc) {
 	}
 
 	mobileAppTool := mcp.NewTool("create_m2m_app",
-		mcp.WithDescription("Create a new M2M Application in Asgardeo"),
+		mcp.WithDescription(fmt.Sprintf("Create a new M2M Application in %s", productName)),
 		mcp.WithString("application_name", mcp.Description("Name of the application"), mcp.Required()),
 	)
 
@@ -267,6 +273,7 @@ func GetCreateM2MAppTool() (mcp.Tool, server.ToolHandlerFunc) {
 }
 
 func GetSearchApplicationByNameTool() (mcp.Tool, server.ToolHandlerFunc) {
+	productName := config.GetProductName()
 	client, err := asgardeo.GetClientInstance(context.Background())
 
 	if err != nil {
@@ -274,7 +281,7 @@ func GetSearchApplicationByNameTool() (mcp.Tool, server.ToolHandlerFunc) {
 	}
 
 	getApplicationByNameTool := mcp.NewTool("get_application_by_name",
-		mcp.WithDescription("Get details of an application by name"),
+		mcp.WithDescription(fmt.Sprintf("Get details of an application by name in %s", productName)),
 		mcp.WithString("application_name", mcp.Description("Name of the application"), mcp.Required()),
 	)
 
@@ -317,6 +324,7 @@ func GetSearchApplicationByNameTool() (mcp.Tool, server.ToolHandlerFunc) {
 }
 
 func GetSearchApplicationByClientIdTool() (mcp.Tool, server.ToolHandlerFunc) {
+	productName := config.GetProductName()
 	client, err := asgardeo.GetClientInstance(context.Background())
 
 	if err != nil {
@@ -324,7 +332,7 @@ func GetSearchApplicationByClientIdTool() (mcp.Tool, server.ToolHandlerFunc) {
 	}
 
 	getApplicationByClientIDTool := mcp.NewTool("get_application_by_client_id",
-		mcp.WithDescription("Get details of an application by client ID"),
+		mcp.WithDescription(fmt.Sprintf("Get details of an application by client ID in %s", productName)),
 		mcp.WithString("client_id", mcp.Description("Client ID of the application"), mcp.Required()),
 	)
 
@@ -367,6 +375,7 @@ func GetSearchApplicationByClientIdTool() (mcp.Tool, server.ToolHandlerFunc) {
 }
 
 func GetUpdateApplicationBasicInfoTool() (mcp.Tool, server.ToolHandlerFunc) {
+	productName := config.GetProductName()
 	client, err := asgardeo.GetClientInstance(context.Background())
 
 	if err != nil {
@@ -374,7 +383,7 @@ func GetUpdateApplicationBasicInfoTool() (mcp.Tool, server.ToolHandlerFunc) {
 	}
 
 	updateApplicationBasicInfoTool := mcp.NewTool("update_application_basic_info",
-		mcp.WithDescription("Update basic information of an application"),
+		mcp.WithDescription(fmt.Sprintf("Update basic information of an application in %s", productName)),
 		mcp.WithString("id", mcp.Description("ID of the application"), mcp.Required()),
 		mcp.WithString("name", mcp.Description("Name of the application")),
 		mcp.WithString("description", mcp.Description("Description of the application")),
@@ -419,6 +428,7 @@ func GetUpdateApplicationBasicInfoTool() (mcp.Tool, server.ToolHandlerFunc) {
 }
 
 func GetUpdateApplicationOAuthConfigTool() (mcp.Tool, server.ToolHandlerFunc) {
+	productName := config.GetProductName()
 	client, err := asgardeo.GetClientInstance(context.Background())
 
 	if err != nil {
@@ -428,7 +438,7 @@ func GetUpdateApplicationOAuthConfigTool() (mcp.Tool, server.ToolHandlerFunc) {
 	stringTypeSchema := map[string]interface{}{"type": "string"}
 
 	updateApplicationOAuthConfigTool := mcp.NewTool("update_application_oauth_config",
-		mcp.WithDescription("Update OAuth/OIDC configurations of an application"),
+		mcp.WithDescription(fmt.Sprintf("Update OAuth/OIDC configurations of an application in %s", productName)),
 		mcp.WithString("id", mcp.Description("ID of the application"), mcp.Required()),
 		mcp.WithArray("redirect_urls", mcp.Description("Redirect URLs of the application"), mcp.Items(stringTypeSchema)),
 		mcp.WithNumber("user_access_token_expiry_time", mcp.Description("Expiry time of the access token issued on behalf of the user")),
@@ -483,6 +493,7 @@ func GetUpdateApplicationOAuthConfigTool() (mcp.Tool, server.ToolHandlerFunc) {
 }
 
 func GetUpdateApplicationClaimConfigTool() (mcp.Tool, server.ToolHandlerFunc) {
+	productName := config.GetProductName()
 	client, err := asgardeo.GetClientInstance(context.Background())
 
 	if err != nil {
@@ -492,7 +503,7 @@ func GetUpdateApplicationClaimConfigTool() (mcp.Tool, server.ToolHandlerFunc) {
 	stringTypeSchema := map[string]interface{}{"type": "string"}
 
 	updateApplicationClaimConfigTool := mcp.NewTool("update_application_claim_config",
-		mcp.WithDescription("Update claim configurations of an application."),
+		mcp.WithDescription(fmt.Sprintf("Update claim configurations of an application in %s", productName)),
 		mcp.WithString("id",
 			mcp.Description("ID of the application"),
 			mcp.Required(),
@@ -544,6 +555,7 @@ func GetUpdateApplicationClaimConfigTool() (mcp.Tool, server.ToolHandlerFunc) {
 }
 
 func GetAuthorizeAPITool() (mcp.Tool, server.ToolHandlerFunc) {
+	productName := config.GetProductName()
 	client, err := asgardeo.GetClientInstance(context.Background())
 
 	if err != nil {
@@ -553,7 +565,7 @@ func GetAuthorizeAPITool() (mcp.Tool, server.ToolHandlerFunc) {
 	stringTypeSchema := map[string]interface{}{"type": "string"}
 
 	authorizeAPITool := mcp.NewTool("authorize_api",
-		mcp.WithDescription("Authorize Asgardeo API"),
+		mcp.WithDescription(fmt.Sprintf("Authorize API to an application in %s", productName)),
 		mcp.WithString("appId",
 			mcp.Required(),
 			mcp.Description("This is the id of the application."),
@@ -602,6 +614,7 @@ func GetAuthorizeAPITool() (mcp.Tool, server.ToolHandlerFunc) {
 }
 
 func GetListAuthorizedAPITool() (mcp.Tool, server.ToolHandlerFunc) {
+	productName := config.GetProductName()
 	client, err := asgardeo.GetClientInstance(context.Background())
 
 	if err != nil {
@@ -609,7 +622,7 @@ func GetListAuthorizedAPITool() (mcp.Tool, server.ToolHandlerFunc) {
 	}
 
 	authorizedAPIListTool := mcp.NewTool("list_authorized_api",
-		mcp.WithDescription("List authorized API resources of an application"),
+		mcp.WithDescription(fmt.Sprintf("List authorized API resources of an application in %s", productName)),
 		mcp.WithString("app_id",
 			mcp.Required(),
 			mcp.Description("This is the id of the application."),
@@ -655,6 +668,7 @@ func GetListAuthorizedAPITool() (mcp.Tool, server.ToolHandlerFunc) {
 }
 
 func GetUpdateLoginFlowTool() (mcp.Tool, server.ToolHandlerFunc) {
+	productName := config.GetProductName()
 	client, err := asgardeo.GetClientInstance(context.Background())
 
 	if err != nil {
@@ -662,7 +676,7 @@ func GetUpdateLoginFlowTool() (mcp.Tool, server.ToolHandlerFunc) {
 	}
 
 	updateLoginFlowTool := mcp.NewTool("update_login_flow",
-		mcp.WithDescription("Update login flow in an application for given user prompt."),
+		mcp.WithDescription(fmt.Sprintf("Update login flow in an application for given user prompt in %s", productName)),
 		mcp.WithString("app_id",
 			mcp.Required(),
 			mcp.Description(

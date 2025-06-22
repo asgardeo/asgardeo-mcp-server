@@ -25,19 +25,21 @@ import (
 
 	"github.com/asgardeo/go/pkg/api_resource"
 	"github.com/asgardeo/mcp/internal/asgardeo"
+	"github.com/asgardeo/mcp/internal/config"
 	"github.com/asgardeo/mcp/internal/utils"
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 )
 
 func GetListAPIResourcesTool() (mcp.Tool, server.ToolHandlerFunc) {
+	productName := config.GetProductName()
 	client, err := asgardeo.GetClientInstance(context.Background())
 	if err != nil {
 		log.Printf("Error initializing client instance: %v", err)
 	}
 
 	apiResourceListTool := mcp.NewTool("list_api_resources",
-		mcp.WithDescription("List API Resources registered in Asgardeo"),
+		mcp.WithDescription(fmt.Sprintf("List API Resources registered in %s", productName)),
 		mcp.WithString("filter",
 			mcp.Description(`Filter expression to apply, e.g., name eq Payments API, identifier eq payments_api. Supports 'sw', 'co', 'ew' and 'eq' operations.`),
 		),
@@ -92,12 +94,13 @@ func GetListAPIResourcesTool() (mcp.Tool, server.ToolHandlerFunc) {
 }
 
 func GetSearchAPIResourcesByNameTool() (mcp.Tool, server.ToolHandlerFunc) {
+	productName := config.GetProductName()
 	client, err := asgardeo.GetClientInstance(context.Background())
 	if err != nil {
 		log.Printf("Error initializing client instance: %v", err)
 	}
 	apiResourceSearchByNameTool := mcp.NewTool("search_api_resources_by_name",
-		mcp.WithDescription("Search API Resources registered in Asgardeo by name"),
+		mcp.WithDescription(fmt.Sprintf("Search API Resources by name registered in %s", productName)),
 		mcp.WithString("name",
 			mcp.Required(),
 			mcp.Description("This is the name of the API resource."),
@@ -131,12 +134,13 @@ func GetSearchAPIResourcesByNameTool() (mcp.Tool, server.ToolHandlerFunc) {
 }
 
 func GetSearchAPIResourceByIdentifierTool() (mcp.Tool, server.ToolHandlerFunc) {
+	productName := config.GetProductName()
 	client, err := asgardeo.GetClientInstance(context.Background())
 	if err != nil {
 		log.Printf("Error initializing client instance: %v", err)
 	}
 	apiResourceGetByIdentifierTool := mcp.NewTool("get_api_resource_by_identifier",
-		mcp.WithDescription("Get API Resource registered in Asgardeo by identifier"),
+		mcp.WithDescription(fmt.Sprintf("Get API Resource by identifier registered in %s", productName)),
 		mcp.WithString("identifier",
 			mcp.Required(),
 			mcp.Description("This is the identifier of the API resource."),
@@ -166,6 +170,7 @@ func GetSearchAPIResourceByIdentifierTool() (mcp.Tool, server.ToolHandlerFunc) {
 }
 
 func GetCreateAPIResourceTool() (mcp.Tool, server.ToolHandlerFunc) {
+	productName := config.GetProductName()
 	client, err := asgardeo.GetClientInstance(context.Background())
 
 	if err != nil {
@@ -174,7 +179,7 @@ func GetCreateAPIResourceTool() (mcp.Tool, server.ToolHandlerFunc) {
 
 	stringTypeSchema := map[string]interface{}{"type": "string"}
 	apiResourceCreateTool := mcp.NewTool("create_api_resource",
-		mcp.WithDescription("Create an API Resource in Asgardeo"),
+		mcp.WithDescription(fmt.Sprintf("Create an API Resource in %s", productName)),
 
 		mcp.WithString("identifier",
 			mcp.Required(),

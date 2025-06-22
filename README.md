@@ -1,6 +1,6 @@
 # Asgardeo MCP Server
 
-The Asgardeo MCP Server allows you to manage your Asgardeo organization seamlessly using LLM tools, enabling natural language interactions for various configuration tasks.
+The Asgardeo MCP Server allows you to manage your Asgardeo organization or WSO2 Identity Server deployment seamlessly using LLM tools, enabling natural language interactions for various configuration tasks.
 
 > [!IMPORTANT]
 > **Experimental Feature Notice**  
@@ -10,7 +10,7 @@ The Asgardeo MCP Server allows you to manage your Asgardeo organization seamless
 ### Key Use Cases
 With tools like Claude Desktop, you can:
 
-- **List Applications**: Retrieve a list of all applications in your Asgardeo organization.
+- **List Applications**: Retrieve a list of all applications in your organization.
 - **Create Applications**: Set up single-page, web, mobile or m2m applications and integrate it with the Asgardeo authentication SDK.
 - **Retrieve Application Details**: Fetch detailed information about specific applications.
 - **Configure Login Flows**: Customize the login flow of an application using natural language prompts and the available tools, enabling seamless user authentication experiences.
@@ -27,9 +27,9 @@ With tools like Claude Desktop, you can:
 
 ## How to Use
 
-### On Asgardeo
+### On Asgardeo / WSO2 Identity Server
 
-1. **Create an M2M Application**: Set up an M2M application in your Asgardeo organization.
+1. **Create an M2M Application**: Set up an M2M application in your organization.
 2. **Authorize Management APIs**: Grant the following scopes to the application:
 
   | API | Scopes |
@@ -74,9 +74,9 @@ With tools like Claude Desktop, you can:
             "command": "<absolute path to the asgardeo-mcp executable, e.g., /Users/<user directory>/<repository path>/asgardeo-mcp-server/asgardeo-mcp>",
             "args": [],
             "env": {
-                "ASGARDEO_BASE_URL" : "https://api.asgardeo.io/t/<asgardeo organization>",
-                "ASGARDEO_CLIENT_ID" : "<client ID>",
-                "ASGARDEO_CLIENT_SECRET" : "<client secret>"
+                "BASE_URL" : "https://api.asgardeo.io/t/<asgardeo organization>",
+                "CLIENT_ID" : "<client ID>",
+                "CLIENT_SECRET" : "<client secret>"
               }
             }
     }
@@ -93,9 +93,9 @@ With tools like Claude Desktop, you can:
    "command": "<absolute path to the asgardeo-mcp executable, e.g., /Users/<user directory>/<repository path>/asgardeo-mcp-server/asgardeo-mcp>",
    "args": [],
    "env": {
-    "ASGARDEO_BASE_URL": "https://api.asgardeo.io/t/<asgardeo organization>",
-    "ASGARDEO_CLIENT_ID": "<client ID>",
-    "ASGARDEO_CLIENT_SECRET": "<client secret>"
+    "BASE_URL": "https://api.asgardeo.io/t/<asgardeo organization>",
+    "CLIENT_ID": "<client ID>",
+    "CLIENT_SECRET": "<client secret>"
    }
   }
   ```
@@ -110,24 +110,29 @@ With tools like Claude Desktop, you can:
    "command": "<absolute path to the asgardeo-mcp executable, e.g., /Users/<user directory>/<repository path>/asgardeo-mcp-server/asgardeo-mcp>",
    "args": [],
    "env": {
-    "ASGARDEO_BASE_URL": "https://api.asgardeo.io/t/<asgardeo organization>",
-    "ASGARDEO_CLIENT_ID": "<client ID>",
-    "ASGARDEO_CLIENT_SECRET": "<client secret>"
+    "BASE_URL": "https://api.asgardeo.io/t/<asgardeo organization>",
+    "CLIENT_ID": "<client ID>",
+    "CLIENT_SECRET": "<client secret>"
    }
   }
   ```
+
+> [!NOTE]
+> - If you are using the WSO2 Identity Server, you need to set an additional environment variable named `PRODUCT_MODE` to `wso2is`.
+> - Also, replace the `BASE_URL` with your WSO2 Identity Server base URL (e.g., `https://<your-wso2is-host>/t/<tenant-domain>`).
+> - Additionally, if you are using WSO2 Identity Server for local development or in internal networks, you may need to set the certificate authority (CA) for the server to avoid SSL errors. You can do this by setting the `CERT_PATH` environment variable to the path of your CA certificate file.
 
 ---
 
 ## Available Tools
 
-The Asgardeo MCP Server provides the following tools for interacting with your Asgardeo organization:
+The Asgardeo MCP Server provides the following tools for interacting with your organization:
 
 ### Application Management
 
 | Tool Name | Description | Parameters |
 |-----------|-------------|------------|
-| `list_applications` | Lists all applications in Asgardeo | None |
+| `list_applications` | Lists all applications in your organization | None |
 | `create_single_page_app` | Creates a new Single Page Application | `application_name` (required): Name of the application<br>`redirect_url` (required): Redirect URL for the application |
 | `create_webapp_with_ssr` | Creates a new web application with server-side rendering | `application_name` (required): Name of the application<br>`redirect_url` (required): Redirect URL for the application |
 | `create_mobile_app` | Creates a new Mobile Application | `application_name` (required): Name of the application<br>`redirect_url` (required): Redirect URL for the application |
@@ -145,7 +150,7 @@ The Asgardeo MCP Server provides the following tools for interacting with your A
 
 | Tool Name | Description | Parameters |
 |-----------|-------------|------------|
-| `list_api_resources` | Lists API resources in your Asgardeo organization | `filter` (optional): Filter expression<br>`limit` (optional): Maximum results to return |
+| `list_api_resources` | Lists API resources in your organization | `filter` (optional): Filter expression<br>`limit` (optional): Maximum results to return |
 | `search_api_resources_by_name` | Searches for API resources by name | `name` (required): Name of the API resource to search for |
 | `get_api_resource_by_identifier` | Gets an API resource by its identifier | `identifier` (required): Identifier of the API resource |
 | `create_api_resource` | Creates a new API resource | `identifier` (required): Identifier for the API resource<br>`name` (required): Name of the API resource<br>`requiresAuthorization` (required): Whether the API requires authorization<br>`scopes` (required): List of scopes for the API |
@@ -154,14 +159,16 @@ The Asgardeo MCP Server provides the following tools for interacting with your A
 
 | Tool Name | Description | Parameters |
 |-----------|-------------|------------|
-| `create_user` | Creates a user in your Asgardeo organization | `username` (required): Username<br>`password` (required): Password<br>`email` (required): Email address<br>`first_name` (required): User's first name<br>`last_name` (required): User's last name<br>`userstore_domain` (optional, default: "DEFAULT"): Userstore domain |
+| `create_user` | Creates a user in your organization | `username` (required): Username<br>`password` (required): Password<br>`email` (required): Email address<br>`first_name` (required): User's first name<br>`last_name` (required): User's last name<br>`userstore_domain` (optional, default: "DEFAULT"): Userstore domain |
 
 ### Claim Management
 
 | Tool Name | Description | Parameters |
 |-----------|-------------|------------|
-| `list_claims` | Lists claims in your Asgardeo organization | None |
+| `list_claims` | Lists claims in your organization | None |
 
+> [!NOTE]
+> If you are using the WSO2 Identity Server and planning to use `update_login_flow` tool, make sure to follow the steps in [Subscribe to AI features](https://is.docs.wso2.com/en/next/get-started/subscribe-to-ai-features/).
 ---
 
 ## Example Prompts
