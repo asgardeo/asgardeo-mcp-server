@@ -74,9 +74,9 @@ With tools like Claude Desktop, you can:
             "command": "<absolute path to the asgardeo-mcp executable, e.g., /Users/<user directory>/<repository path>/asgardeo-mcp-server/asgardeo-mcp>",
             "args": [],
             "env": {
-                "ASGARDEO_BASE_URL" : "https://api.asgardeo.io/t/<asgardeo organization>",
-                "ASGARDEO_CLIENT_ID" : "<client ID>",
-                "ASGARDEO_CLIENT_SECRET" : "<client secret>"
+                "BASE_URL" : "https://api.asgardeo.io/t/<asgardeo organization>",
+                "CLIENT_ID" : "<client ID>",
+                "CLIENT_SECRET" : "<client secret>"
               }
             }
     }
@@ -93,9 +93,9 @@ With tools like Claude Desktop, you can:
    "command": "<absolute path to the asgardeo-mcp executable, e.g., /Users/<user directory>/<repository path>/asgardeo-mcp-server/asgardeo-mcp>",
    "args": [],
    "env": {
-    "ASGARDEO_BASE_URL": "https://api.asgardeo.io/t/<asgardeo organization>",
-    "ASGARDEO_CLIENT_ID": "<client ID>",
-    "ASGARDEO_CLIENT_SECRET": "<client secret>"
+    "BASE_URL": "https://api.asgardeo.io/t/<asgardeo organization>",
+    "CLIENT_ID": "<client ID>",
+    "CLIENT_SECRET": "<client secret>"
    }
   }
   ```
@@ -110,16 +110,16 @@ With tools like Claude Desktop, you can:
    "command": "<absolute path to the asgardeo-mcp executable, e.g., /Users/<user directory>/<repository path>/asgardeo-mcp-server/asgardeo-mcp>",
    "args": [],
    "env": {
-    "ASGARDEO_BASE_URL": "https://api.asgardeo.io/t/<asgardeo organization>",
-    "ASGARDEO_CLIENT_ID": "<client ID>",
-    "ASGARDEO_CLIENT_SECRET": "<client secret>"
+    "BASE_URL": "https://api.asgardeo.io/t/<asgardeo organization>",
+    "CLIENT_ID": "<client ID>",
+    "CLIENT_SECRET": "<client secret>"
    }
   }
   ```
 
 > [!NOTE]
 > - If you are using the WSO2 Identity Server, you need to set an additional environment variable named `PRODUCT_MODE` to `wso2is`.
-> - Also, replace the `ASGARDEO_BASE_URL` with your WSO2 Identity Server base URL (e.g., `https://<your-wso2is-host>/t/<tenant-domain>`).
+> - Also, replace the `BASE_URL` with your WSO2 Identity Server base URL (e.g., `https://<your-wso2is-host>/t/<tenant-domain>`).
 > - Additionally, if you are using WSO2 Identity Server for local development or in internal networks, you may need to set the certificate authority (CA) for the server to avoid SSL errors. You can do this by setting the `CERT_PATH` environment variable to the path of your CA certificate file.
 
 ---
