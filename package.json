@@ -1,0 +1,45 @@
+{
+  "name": "@asgardeo/mcp-server",
+  "version": "1.0.0",
+  "description": "Asgardeo MCP Server - Manage your Asgardeo organization using Agents",
+  "main": "lib/index.js",
+  "bin": {
+    "asgardeo-mcp": "bin/asgardeo-mcp.js"
+  },
+  "scripts": {
+    "postinstall": "node lib/install.js",
+    "build": "node lib/build.js",
+    "test": "node lib/test.js"
+  },
+  "keywords": [
+    "asgardeo",
+    "mcp",
+    "server",
+    "identity",
+    "authentication"
+  ],
+  "author": "Asgardeo",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/asgardeo/asgardeo-mcp-server.git"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "os": [
+    "darwin",
+    "linux",
+    "win32"
+  ],
+  "cpu": [
+    "x64",
+    "arm64"
+  ],
+  "files": [
+    "lib/",
+    "bin/",
+    "README.md",
+    "LICENSE"
+  ]
+}

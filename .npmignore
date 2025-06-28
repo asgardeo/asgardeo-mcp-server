@@ -1,0 +1,24 @@
+# Source files
+*.go
+go.mod
+go.sum
+main.go
+internal/
+Makefile
+
+# Development files
+.git/
+.github/
+*.md
+!README.md
+issue_template.md
+pull_request_template.md
+
+# Assets (optional - include if you want them in npm package)
+# assets/
+
+# Build artifacts (keep only the npm package structure)
+!lib/
+!bin/
+!package.json
+!LICENSE
