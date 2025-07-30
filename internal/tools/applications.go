@@ -139,7 +139,7 @@ func GetCreateWebAppWithSSRTool() (mcp.Tool, server.ToolHandlerFunc) {
 
 		webapp, err := client.Application.CreateWebAppWithSSR(ctx, appName, redirectURL)
 		if err != nil {
-			log.Printf("Error creating SPA: %v", err)
+			log.Printf("Error creating the Web Application: %v", err)
 			return nil, err
 		}
 
