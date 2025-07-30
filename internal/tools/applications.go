@@ -139,7 +139,7 @@ func GetCreateWebAppWithSSRTool() (mcp.Tool, server.ToolHandlerFunc) {
 
 		webapp, err := client.Application.CreateWebAppWithSSR(ctx, appName, redirectURL)
 		if err != nil {
-			log.Printf("Error creating SPA: %v", err)
+			log.Printf("Error creating the Web Application: %v", err)
 			return nil, err
 		}
 
@@ -270,6 +270,120 @@ func GetCreateM2MAppTool() (mcp.Tool, server.ToolHandlerFunc) {
 	}
 
 	return mobileAppTool, mobileAppToolImpl
+}
+
+func GetCreateReactAppTool() (mcp.Tool, server.ToolHandlerFunc) {
+	productName := config.GetProductName()
+	client, err := asgardeo.GetClientInstance(context.Background())
+
+	if err != nil {
+		log.Printf("Error initializing client instance: %v", err)
+	}
+
+	reactAppTool := mcp.NewTool("create_react_app",
+		mcp.WithDescription(fmt.Sprintf("Create a new React Application in %s", productName)),
+		mcp.WithString("application_name", mcp.Description("Name of the application"), mcp.Required()),
+		mcp.WithString("redirect_url", mcp.Description("Redirect URL of the application"), mcp.Required()),
+	)
+
+	reactAppToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		appName := req.Params.Arguments["application_name"].(string)
+		redirectURL := req.Params.Arguments["redirect_url"].(string)
+
+		reactApp, err := client.Application.CreateSinglePageApp(ctx, appName, redirectURL)
+
+		if err != nil {
+			log.Printf("Error creating React App: %v", err)
+
+			return nil, err
+		}
+
+		baseURL := client.Config.BaseURL
+		response := map[string]interface{}{
+			"application_configurations": map[string]string{
+				"name":             reactApp.Name,
+				"id":               reactApp.Id,
+				"client_id":        reactApp.ClientId,
+				"redirect_url":     reactApp.RedirectURL,
+				"scope":            reactApp.AuthorizedScopes,
+				"application_type": string(reactApp.AppType),
+			},
+			"oauth_endpoints": map[string]string{
+				"base_url":      baseURL,
+				"authorize_url": fmt.Sprintf("%s/oauth2/authorize", baseURL),
+				"token_url":     fmt.Sprintf("%s/oauth2/token", baseURL),
+				"jwks_url":      fmt.Sprintf("%s/oauth2/jwks", baseURL),
+				"userinfo_url":  fmt.Sprintf("%s/oauth2/userinfo", baseURL),
+			},
+		}
+
+		jsonData, err := utils.MarshalResponse(response)
+
+		if err != nil {
+			return nil, err
+		}
+
+		return mcp.NewToolResultText(jsonData), nil
+	}
+
+	return reactAppTool, reactAppToolImpl
+}
+
+func GetCreateNextJSAppTool() (mcp.Tool, server.ToolHandlerFunc) {
+	productName := config.GetProductName()
+	client, err := asgardeo.GetClientInstance(context.Background())
+
+	if err != nil {
+		log.Printf("Error initializing client instance: %v", err)
+	}
+
+	nextJSAppTool := mcp.NewTool("create_nextjs_app",
+		mcp.WithDescription(fmt.Sprintf("Create a new Next.js Application in %s", productName)),
+		mcp.WithString("application_name", mcp.Description("Name of the application"), mcp.Required()),
+		mcp.WithString("redirect_url", mcp.Description("Redirect URL of the application"), mcp.Required()),
+	)
+
+	nextJSAppToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		appName := req.Params.Arguments["application_name"].(string)
+		redirectURL := req.Params.Arguments["redirect_url"].(string)
+
+		nextJSApp, err := client.Application.CreateWebAppWithSSR(ctx, appName, redirectURL)
+
+		if err != nil {
+			log.Printf("Error creating the Next.js Application: %v", err)
+
+			return nil, err
+		}
+
+		baseURL := client.Config.BaseURL
+		response := map[string]interface{}{
+			"application_configurations": map[string]string{
+				"name":             nextJSApp.Name,
+				"id":               nextJSApp.Id,
+				"client_id":        nextJSApp.ClientId,
+				"redirect_url":     nextJSApp.RedirectURL,
+				"scope":            nextJSApp.AuthorizedScopes,
+				"application_type": string(nextJSApp.AppType),
+			},
+			"oauth_endpoints": map[string]string{
+				"base_url":      baseURL,
+				"authorize_url": fmt.Sprintf("%s/oauth2/authorize", baseURL),
+				"token_url":     fmt.Sprintf("%s/oauth2/token", baseURL),
+				"jwks_url":      fmt.Sprintf("%s/oauth2/jwks", baseURL),
+				"userinfo_url":  fmt.Sprintf("%s/oauth2/userinfo", baseURL),
+			},
+		}
+
+		jsonData, err := utils.MarshalResponse(response)
+
+		if err != nil {
+			return nil, err
+		}
+
+		return mcp.NewToolResultText(jsonData), nil
+	}
+
+	return nextJSAppTool, nextJSAppToolImpl
 }
 
 func GetSearchApplicationByNameTool() (mcp.Tool, server.ToolHandlerFunc) {

@@ -51,6 +51,12 @@ func setupServer() *server.MCPServer {
 	m2mAppTool, m2mAppToolImpl := tools.GetCreateM2MAppTool()
 	s.AddTool(m2mAppTool, m2mAppToolImpl)
 
+	reactAppTool, reactAppToolImpl := tools.GetCreateReactAppTool()
+	s.AddTool(reactAppTool, reactAppToolImpl)
+	
+	nextJSAppTool, nextJSAppToolImpl := tools.GetCreateNextJSAppTool()
+	s.AddTool(nextJSAppTool, nextJSAppToolImpl)
+
 	getAppByNameTool, getAppByNameToolmpl := tools.GetSearchApplicationByNameTool()
 	s.AddTool(getAppByNameTool, getAppByNameToolmpl)
 
