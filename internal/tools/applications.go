@@ -291,8 +291,10 @@ func GetCreateReactAppTool() (mcp.Tool, server.ToolHandlerFunc) {
 		redirectURL := req.Params.Arguments["redirect_url"].(string)
 
 		reactApp, err := client.Application.CreateSinglePageApp(ctx, appName, redirectURL)
+
 		if err != nil {
 			log.Printf("Error creating React App: %v", err)
+
 			return nil, err
 		}
 
@@ -316,9 +318,11 @@ func GetCreateReactAppTool() (mcp.Tool, server.ToolHandlerFunc) {
 		}
 
 		jsonData, err := utils.MarshalResponse(response)
+
 		if err != nil {
 			return nil, err
 		}
+
 		return mcp.NewToolResultText(jsonData), nil
 	}
 
