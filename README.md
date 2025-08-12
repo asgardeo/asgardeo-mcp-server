@@ -48,7 +48,7 @@ With tools like Claude Desktop, you can:
 
 4. **Clone the Repository**:
   ```bash
-  git clone <repository-url>
+  git clone https://github.com/asgardeo/asgardeo-mcp-server.git
   ```
 5. **Install Dependencies**:
   ```bash
