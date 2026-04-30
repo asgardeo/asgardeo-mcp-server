@@ -33,16 +33,16 @@ import (
 
 func GetListClaimsTool() (mcp.Tool, server.ToolHandlerFunc) {
 	productName := config.GetProductName()
-	client, err := asgardeo.GetClientInstance(context.Background())
-	if err != nil {
-		log.Printf("Error initializing client instance: %v", err)
-	}
 
 	listClaimsTool := mcp.NewTool("list_claims",
 		mcp.WithDescription(fmt.Sprintf("List all claims in %s", productName)),
 	)
 
 	listClaimsToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		client, err := asgardeo.GetClientForContext(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get Asgardeo client: %w", err)
+		}
 		excludeHiddenClaims := true
 		listLocalClaimParams := claim.LocalClaimListParamsModel{
 			ExcludeHiddenClaims: &excludeHiddenClaims,
