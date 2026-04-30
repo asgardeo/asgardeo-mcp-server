@@ -34,17 +34,16 @@ import (
 
 func GetListApplicationsTool() (mcp.Tool, server.ToolHandlerFunc) {
 	productName := config.GetProductName()
-	client, err := asgardeo.GetClientInstance(context.Background())
-
-	if err != nil {
-		log.Printf("Error initializing client instance: %v", err)
-	}
 
 	appListTool := mcp.NewTool("list_applications",
 		mcp.WithDescription(fmt.Sprintf("List all applications in %s", productName)),
 	)
 
 	appListToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		client, err := asgardeo.GetClientForContext(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get Asgardeo client: %w", err)
+		}
 		resp, err := client.Application.List(ctx, 10, 0)
 		if err != nil {
 			log.Printf("Error listing applications: %v", err)
@@ -68,11 +67,6 @@ func GetListApplicationsTool() (mcp.Tool, server.ToolHandlerFunc) {
 
 func GetCreateSinglePageAppTool() (mcp.Tool, server.ToolHandlerFunc) {
 	productName := config.GetProductName()
-	client, err := asgardeo.GetClientInstance(context.Background())
-
-	if err != nil {
-		log.Printf("Error initializing client instance: %v", err)
-	}
 
 	spaTool := mcp.NewTool("create_single_page_app",
 		mcp.WithDescription(fmt.Sprintf("Create a new Single Page Application in %s", productName)),
@@ -81,6 +75,10 @@ func GetCreateSinglePageAppTool() (mcp.Tool, server.ToolHandlerFunc) {
 	)
 
 	spaToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		client, err := asgardeo.GetClientForContext(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get Asgardeo client: %w", err)
+		}
 		appName := req.Params.Arguments["application_name"].(string)
 		redirectURL := req.Params.Arguments["redirect_url"].(string)
 
@@ -121,11 +119,6 @@ func GetCreateSinglePageAppTool() (mcp.Tool, server.ToolHandlerFunc) {
 
 func GetCreateWebAppWithSSRTool() (mcp.Tool, server.ToolHandlerFunc) {
 	productName := config.GetProductName()
-	client, err := asgardeo.GetClientInstance(context.Background())
-
-	if err != nil {
-		log.Printf("Error initializing client instance: %v", err)
-	}
 
 	webappTool := mcp.NewTool("create_webapp_with_ssr",
 		mcp.WithDescription(fmt.Sprintf("Create a new regular web application that implements server side rendring in %s", productName)),
@@ -134,6 +127,10 @@ func GetCreateWebAppWithSSRTool() (mcp.Tool, server.ToolHandlerFunc) {
 	)
 
 	webappToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		client, err := asgardeo.GetClientForContext(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get Asgardeo client: %w", err)
+		}
 		appName := req.Params.Arguments["application_name"].(string)
 		redirectURL := req.Params.Arguments["redirect_url"].(string)
 
@@ -174,11 +171,6 @@ func GetCreateWebAppWithSSRTool() (mcp.Tool, server.ToolHandlerFunc) {
 
 func GetCreateMobileAppTool() (mcp.Tool, server.ToolHandlerFunc) {
 	productName := config.GetProductName()
-	client, err := asgardeo.GetClientInstance(context.Background())
-
-	if err != nil {
-		log.Printf("Error initializing client instance: %v", err)
-	}
 
 	mobileAppTool := mcp.NewTool("create_mobile_app",
 		mcp.WithDescription(fmt.Sprintf("Create a new Mobile Application in %s", productName)),
@@ -187,6 +179,10 @@ func GetCreateMobileAppTool() (mcp.Tool, server.ToolHandlerFunc) {
 	)
 
 	mobileAppToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		client, err := asgardeo.GetClientForContext(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get Asgardeo client: %w", err)
+		}
 		appName := req.Params.Arguments["application_name"].(string)
 		redirectURL := req.Params.Arguments["redirect_url"].(string)
 
@@ -227,11 +223,6 @@ func GetCreateMobileAppTool() (mcp.Tool, server.ToolHandlerFunc) {
 
 func GetCreateM2MAppTool() (mcp.Tool, server.ToolHandlerFunc) {
 	productName := config.GetProductName()
-	client, err := asgardeo.GetClientInstance(context.Background())
-
-	if err != nil {
-		log.Printf("Error initializing client instance: %v", err)
-	}
 
 	mobileAppTool := mcp.NewTool("create_m2m_app",
 		mcp.WithDescription(fmt.Sprintf("Create a new M2M Application in %s", productName)),
@@ -239,6 +230,10 @@ func GetCreateM2MAppTool() (mcp.Tool, server.ToolHandlerFunc) {
 	)
 
 	mobileAppToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		client, err := asgardeo.GetClientForContext(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get Asgardeo client: %w", err)
+		}
 		appName := req.Params.Arguments["application_name"].(string)
 
 		m2mApp, err := client.Application.CreateM2MApp(ctx, appName)
@@ -274,11 +269,6 @@ func GetCreateM2MAppTool() (mcp.Tool, server.ToolHandlerFunc) {
 
 func GetSearchApplicationByNameTool() (mcp.Tool, server.ToolHandlerFunc) {
 	productName := config.GetProductName()
-	client, err := asgardeo.GetClientInstance(context.Background())
-
-	if err != nil {
-		log.Printf("Error initializing client instance: %v", err)
-	}
 
 	getApplicationByNameTool := mcp.NewTool("get_application_by_name",
 		mcp.WithDescription(fmt.Sprintf("Get details of an application by name in %s", productName)),
@@ -286,6 +276,10 @@ func GetSearchApplicationByNameTool() (mcp.Tool, server.ToolHandlerFunc) {
 	)
 
 	getApplicationByNameToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		client, err := asgardeo.GetClientForContext(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get Asgardeo client: %w", err)
+		}
 		appName := req.Params.Arguments["application_name"].(string)
 
 		app, err := client.Application.GetByName(ctx, appName)
@@ -325,11 +319,6 @@ func GetSearchApplicationByNameTool() (mcp.Tool, server.ToolHandlerFunc) {
 
 func GetSearchApplicationByClientIdTool() (mcp.Tool, server.ToolHandlerFunc) {
 	productName := config.GetProductName()
-	client, err := asgardeo.GetClientInstance(context.Background())
-
-	if err != nil {
-		log.Printf("Error initializing client instance: %v", err)
-	}
 
 	getApplicationByClientIDTool := mcp.NewTool("get_application_by_client_id",
 		mcp.WithDescription(fmt.Sprintf("Get details of an application by client ID in %s", productName)),
@@ -337,6 +326,10 @@ func GetSearchApplicationByClientIdTool() (mcp.Tool, server.ToolHandlerFunc) {
 	)
 
 	getApplicationByClientIDToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		client, err := asgardeo.GetClientForContext(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get Asgardeo client: %w", err)
+		}
 		appName := req.Params.Arguments["client_id"].(string)
 
 		app, err := client.Application.GetByClienId(ctx, appName)
@@ -376,11 +369,6 @@ func GetSearchApplicationByClientIdTool() (mcp.Tool, server.ToolHandlerFunc) {
 
 func GetUpdateApplicationBasicInfoTool() (mcp.Tool, server.ToolHandlerFunc) {
 	productName := config.GetProductName()
-	client, err := asgardeo.GetClientInstance(context.Background())
-
-	if err != nil {
-		log.Printf("Error initializing client instance: %v", err)
-	}
 
 	updateApplicationBasicInfoTool := mcp.NewTool("update_application_basic_info",
 		mcp.WithDescription(fmt.Sprintf("Update basic information of an application in %s", productName)),
@@ -393,6 +381,10 @@ func GetUpdateApplicationBasicInfoTool() (mcp.Tool, server.ToolHandlerFunc) {
 	)
 
 	updateApplicationBasicInfoToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		client, err := asgardeo.GetClientForContext(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get Asgardeo client: %w", err)
+		}
 		appId := req.Params.Arguments["id"].(string)
 
 		basicInfoUpdate := application.NewBasicInfoUpdate()
@@ -415,7 +407,7 @@ func GetUpdateApplicationBasicInfoTool() (mcp.Tool, server.ToolHandlerFunc) {
 			basicInfoUpdate.WithName(name.(string))
 		}
 
-		err := client.Application.UpdateBasicInfo(ctx, appId, *basicInfoUpdate)
+		err = client.Application.UpdateBasicInfo(ctx, appId, *basicInfoUpdate)
 		if err != nil {
 			log.Printf("Error updating application: %v", err)
 			return nil, err
@@ -429,11 +421,6 @@ func GetUpdateApplicationBasicInfoTool() (mcp.Tool, server.ToolHandlerFunc) {
 
 func GetUpdateApplicationOAuthConfigTool() (mcp.Tool, server.ToolHandlerFunc) {
 	productName := config.GetProductName()
-	client, err := asgardeo.GetClientInstance(context.Background())
-
-	if err != nil {
-		log.Printf("Error initializing client instance: %v", err)
-	}
 
 	stringTypeSchema := map[string]interface{}{"type": "string"}
 
@@ -450,6 +437,10 @@ func GetUpdateApplicationOAuthConfigTool() (mcp.Tool, server.ToolHandlerFunc) {
 	)
 
 	updateApplicationOAuthConfigToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		client, err := asgardeo.GetClientForContext(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get Asgardeo client: %w", err)
+		}
 		appId := req.Params.Arguments["id"].(string)
 
 		OAuthConfigUpdate := application.NewOAuthConfigUpdate()
@@ -480,7 +471,7 @@ func GetUpdateApplicationOAuthConfigTool() (mcp.Tool, server.ToolHandlerFunc) {
 			OAuthConfigUpdate.WithAccessTokenAttributes(attrs)
 		}
 
-		err := client.Application.UpdateOAuthConfig(ctx, appId, *OAuthConfigUpdate)
+		err = client.Application.UpdateOAuthConfig(ctx, appId, *OAuthConfigUpdate)
 		if err != nil {
 			log.Printf("Error updating application: %v", err)
 			return nil, err
@@ -494,11 +485,6 @@ func GetUpdateApplicationOAuthConfigTool() (mcp.Tool, server.ToolHandlerFunc) {
 
 func GetUpdateApplicationClaimConfigTool() (mcp.Tool, server.ToolHandlerFunc) {
 	productName := config.GetProductName()
-	client, err := asgardeo.GetClientInstance(context.Background())
-
-	if err != nil {
-		log.Printf("Error initializing client instance: %v", err)
-	}
 
 	stringTypeSchema := map[string]interface{}{"type": "string"}
 
@@ -516,6 +502,10 @@ func GetUpdateApplicationClaimConfigTool() (mcp.Tool, server.ToolHandlerFunc) {
 	)
 
 	updateApplicationClaimConfigToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		client, err := asgardeo.GetClientForContext(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get Asgardeo client: %w", err)
+		}
 		appId := req.Params.Arguments["id"].(string)
 		claimsInput, ok := req.Params.Arguments["claims"].([]interface{})
 		if !ok {
@@ -542,7 +532,7 @@ func GetUpdateApplicationClaimConfigTool() (mcp.Tool, server.ToolHandlerFunc) {
 		claimConfiguration := application.ApplicationClaimConfigurationUpdateModel{
 			RequestedClaims: &claimConfigs,
 		}
-		err := client.Application.UpdateClaimConfig(ctx, appId, claimConfiguration)
+		err = client.Application.UpdateClaimConfig(ctx, appId, claimConfiguration)
 		if err != nil {
 			log.Printf("Error updating the claim configuration of the application: %v", err)
 			return nil, err
@@ -556,11 +546,6 @@ func GetUpdateApplicationClaimConfigTool() (mcp.Tool, server.ToolHandlerFunc) {
 
 func GetAuthorizeAPITool() (mcp.Tool, server.ToolHandlerFunc) {
 	productName := config.GetProductName()
-	client, err := asgardeo.GetClientInstance(context.Background())
-
-	if err != nil {
-		log.Printf("Error initializing client instance: %v", err)
-	}
 
 	stringTypeSchema := map[string]interface{}{"type": "string"}
 
@@ -587,6 +572,10 @@ func GetAuthorizeAPITool() (mcp.Tool, server.ToolHandlerFunc) {
 		),
 	)
 	authorizeAPIToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		client, err := asgardeo.GetClientForContext(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get Asgardeo client: %w", err)
+		}
 		appId := req.Params.Arguments["appId"].(string)
 		id := req.Params.Arguments["id"].(string)
 		policyIdentifier := req.Params.Arguments["policyIdentifier"].(string)
@@ -601,7 +590,7 @@ func GetAuthorizeAPITool() (mcp.Tool, server.ToolHandlerFunc) {
 			Scopes:           &scopes,
 		}
 
-		err := client.Application.AuthorizeAPI(ctx, appId, authorizedAPI)
+		err = client.Application.AuthorizeAPI(ctx, appId, authorizedAPI)
 		if err != nil {
 			log.Printf("Error authorizing API resource: %v", err)
 			return nil, err
@@ -615,11 +604,6 @@ func GetAuthorizeAPITool() (mcp.Tool, server.ToolHandlerFunc) {
 
 func GetListAuthorizedAPITool() (mcp.Tool, server.ToolHandlerFunc) {
 	productName := config.GetProductName()
-	client, err := asgardeo.GetClientInstance(context.Background())
-
-	if err != nil {
-		log.Printf("Error initializing client instance: %v", err)
-	}
 
 	authorizedAPIListTool := mcp.NewTool("list_authorized_api",
 		mcp.WithDescription(fmt.Sprintf("List authorized API resources of an application in %s", productName)),
@@ -630,6 +614,10 @@ func GetListAuthorizedAPITool() (mcp.Tool, server.ToolHandlerFunc) {
 	)
 
 	authorizedAPIListToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		client, err := asgardeo.GetClientForContext(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get Asgardeo client: %w", err)
+		}
 		appId := req.Params.Arguments["app_id"].(string)
 
 		resp, err := client.Application.GetAuthorizedAPIs(ctx, appId)
@@ -669,11 +657,6 @@ func GetListAuthorizedAPITool() (mcp.Tool, server.ToolHandlerFunc) {
 
 func GetUpdateLoginFlowTool() (mcp.Tool, server.ToolHandlerFunc) {
 	productName := config.GetProductName()
-	client, err := asgardeo.GetClientInstance(context.Background())
-
-	if err != nil {
-		log.Printf("Error initializing client instance: %v", err)
-	}
 
 	updateLoginFlowTool := mcp.NewTool("update_login_flow",
 		mcp.WithDescription(fmt.Sprintf("Update login flow in an application for given user prompt in %s", productName)),
@@ -693,6 +676,10 @@ func GetUpdateLoginFlowTool() (mcp.Tool, server.ToolHandlerFunc) {
 	)
 
 	updateLoginFlowToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		client, err := asgardeo.GetClientForContext(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get Asgardeo client: %w", err)
+		}
 		userPrompt := req.Params.Arguments["user_prompt"].(string)
 		appId := req.Params.Arguments["app_id"].(string)
 

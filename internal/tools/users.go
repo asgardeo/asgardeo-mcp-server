@@ -32,11 +32,6 @@ import (
 
 func GetCreateUserTool() (mcp.Tool, server.ToolHandlerFunc) {
 	productName := config.GetProductName()
-	client, err := asgardeo.GetClientInstance(context.Background())
-
-	if err != nil {
-		log.Printf("Error initializing client instance: %v", err)
-	}
 
 	userCreateTool := mcp.NewTool("create_user",
 		mcp.WithDescription(fmt.Sprintf("Create a user in %s", productName)),
@@ -68,6 +63,10 @@ func GetCreateUserTool() (mcp.Tool, server.ToolHandlerFunc) {
 	)
 
 	userCreateToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		client, err := asgardeo.GetClientForContext(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get Asgardeo client: %w", err)
+		}
 		username := req.Params.Arguments["username"].(string)
 		password := req.Params.Arguments["password"].(string)
 		email := req.Params.Arguments["email"].(string)
@@ -78,14 +77,14 @@ func GetCreateUserTool() (mcp.Tool, server.ToolHandlerFunc) {
 			userstoreDomain = req.Params.Arguments["userstore_domain"].(string)
 		}
 
-		user := user.UserCreateModel{
+		newUser := user.UserCreateModel{
 			Username:  userstoreDomain + "/" + username,
 			Password:  password,
 			Email:     email,
 			FirstName: firstName,
 			LastName:  lastName,
 		}
-		resp, err := client.User.CreateUser(ctx, user)
+		resp, err := client.User.CreateUser(ctx, newUser)
 		if err != nil {
 			log.Printf("Error creating the user: %v", err)
 			return nil, err
