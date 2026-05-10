@@ -33,11 +33,6 @@ import (
 
 func GetListAPIResourcesTool() (mcp.Tool, server.ToolHandlerFunc) {
 	productName := config.GetProductName()
-	client, err := asgardeo.GetClientInstance(context.Background())
-	if err != nil {
-		log.Printf("Error initializing client instance: %v", err)
-	}
-
 	apiResourceListTool := mcp.NewTool("list_api_resources",
 		mcp.WithDescription(fmt.Sprintf("List API Resources registered in %s", productName)),
 		mcp.WithString("filter",
@@ -55,7 +50,13 @@ func GetListAPIResourcesTool() (mcp.Tool, server.ToolHandlerFunc) {
 	)
 
 	apiResourceListToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		args := req.Params.Arguments
+		client, err := asgardeo.GetClientInstance(ctx)
+		if err != nil {
+			log.Printf("Error initializing client instance: %v", err)
+			return mcp.NewToolResultError(err.Error()), nil
+		}
+
+		args := req.GetArguments()
 		limit := utils.GetOptionalParam[int](args, "limit")
 		filter := utils.GetOptionalParam[string](args, "filter")
 		before := utils.GetOptionalParam[string](args, "before")
@@ -95,10 +96,6 @@ func GetListAPIResourcesTool() (mcp.Tool, server.ToolHandlerFunc) {
 
 func GetSearchAPIResourcesByNameTool() (mcp.Tool, server.ToolHandlerFunc) {
 	productName := config.GetProductName()
-	client, err := asgardeo.GetClientInstance(context.Background())
-	if err != nil {
-		log.Printf("Error initializing client instance: %v", err)
-	}
 	apiResourceSearchByNameTool := mcp.NewTool("search_api_resources_by_name",
 		mcp.WithDescription(fmt.Sprintf("Search API Resources by name registered in %s", productName)),
 		mcp.WithString("name",
@@ -108,7 +105,13 @@ func GetSearchAPIResourcesByNameTool() (mcp.Tool, server.ToolHandlerFunc) {
 	)
 
 	apiResourceSearchByNameToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		name := req.Params.Arguments["name"].(string)
+		client, err := asgardeo.GetClientInstance(ctx)
+		if err != nil {
+			log.Printf("Error initializing client instance: %v", err)
+			return mcp.NewToolResultError(err.Error()), nil
+		}
+
+		name := req.GetArguments()["name"].(string)
 		resp, err := client.APIResource.GetByName(ctx, name)
 		if err != nil {
 			log.Printf("Error getting api resource list by name: %v", err)
@@ -135,10 +138,6 @@ func GetSearchAPIResourcesByNameTool() (mcp.Tool, server.ToolHandlerFunc) {
 
 func GetSearchAPIResourceByIdentifierTool() (mcp.Tool, server.ToolHandlerFunc) {
 	productName := config.GetProductName()
-	client, err := asgardeo.GetClientInstance(context.Background())
-	if err != nil {
-		log.Printf("Error initializing client instance: %v", err)
-	}
 	apiResourceGetByIdentifierTool := mcp.NewTool("get_api_resource_by_identifier",
 		mcp.WithDescription(fmt.Sprintf("Get API Resource by identifier registered in %s", productName)),
 		mcp.WithString("identifier",
@@ -148,7 +147,13 @@ func GetSearchAPIResourceByIdentifierTool() (mcp.Tool, server.ToolHandlerFunc) {
 	)
 
 	apiResourceGetByIdentifierToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		identifier := req.Params.Arguments["identifier"].(string)
+		client, err := asgardeo.GetClientInstance(ctx)
+		if err != nil {
+			log.Printf("Error initializing client instance: %v", err)
+			return mcp.NewToolResultError(err.Error()), nil
+		}
+
+		identifier := req.GetArguments()["identifier"].(string)
 		resp, err := client.APIResource.GetByIdentifier(ctx, identifier)
 		if err != nil {
 			log.Printf("Error getting api resource by identifier: %v", err)
@@ -171,12 +176,6 @@ func GetSearchAPIResourceByIdentifierTool() (mcp.Tool, server.ToolHandlerFunc) {
 
 func GetCreateAPIResourceTool() (mcp.Tool, server.ToolHandlerFunc) {
 	productName := config.GetProductName()
-	client, err := asgardeo.GetClientInstance(context.Background())
-
-	if err != nil {
-		log.Printf("Error initializing client instance: %v", err)
-	}
-
 	stringTypeSchema := map[string]interface{}{"type": "string"}
 	apiResourceCreateTool := mcp.NewTool("create_api_resource",
 		mcp.WithDescription(fmt.Sprintf("Create an API Resource in %s", productName)),
@@ -203,9 +202,15 @@ func GetCreateAPIResourceTool() (mcp.Tool, server.ToolHandlerFunc) {
 	)
 
 	apiResourceCreateToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		name := req.Params.Arguments["name"].(string)
-		identifier := req.Params.Arguments["identifier"].(string)
-		inputScopes := req.Params.Arguments["scopes"].([]interface{})
+		client, err := asgardeo.GetClientInstance(ctx)
+		if err != nil {
+			log.Printf("Error initializing client instance: %v", err)
+			return mcp.NewToolResultError(err.Error()), nil
+		}
+
+		name := req.GetArguments()["name"].(string)
+		identifier := req.GetArguments()["identifier"].(string)
+		inputScopes := req.GetArguments()["scopes"].([]interface{})
 		scopes := make([]api_resource.ScopeCreateModel, len(inputScopes))
 		for i, inputScope := range inputScopes {
 			scope := api_resource.ScopeCreateModel{}
@@ -238,7 +243,7 @@ func GetCreateAPIResourceTool() (mcp.Tool, server.ToolHandlerFunc) {
 			scopes[i] = scope
 		}
 
-		requiresAuthorization := req.Params.Arguments["requiresAuthorization"].(bool)
+		requiresAuthorization := req.GetArguments()["requiresAuthorization"].(bool)
 		newApiResource := api_resource.APIResourceCreateModel{
 			Name:                  name,
 			Identifier:            identifier,

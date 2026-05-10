@@ -19,8 +19,13 @@
 package main
 
 import (
+	"context"
 	"log"
+	"net/http"
+	"os"
 
+	"github.com/asgardeo/mcp/internal/auth"
+	"github.com/asgardeo/mcp/internal/config"
 	"github.com/asgardeo/mcp/internal/tools"
 	"github.com/mark3labs/mcp-go/server"
 )
@@ -97,8 +102,50 @@ func setupServer() *server.MCPServer {
 }
 
 func main() {
-	// Setup and start MCP server
 	s := setupServer()
+
+	if len(os.Args) > 1 && os.Args[1] == "http" {
+		os.Setenv(config.TRANSPORT_PARAM, config.HTTPTransport)
+	}
+
+	if config.GetTransport() == config.HTTPTransport {
+		httpConfig, err := config.LoadHTTP()
+		if err != nil {
+			log.Fatalf("HTTP config error: %v", err)
+		}
+
+		streamableHTTPServer := server.NewStreamableHTTPServer(
+			s,
+			server.WithEndpointPath(httpConfig.Endpoint),
+			server.WithHTTPContextFunc(func(ctx context.Context, r *http.Request) context.Context {
+				if token, ok := auth.AccessTokenFromContext(r.Context()); ok {
+					ctx = auth.WithAccessToken(ctx, token)
+				}
+				if tenantBaseURL, ok := auth.TenantBaseURLFromContext(r.Context()); ok {
+					ctx = auth.WithTenantBaseURL(ctx, tenantBaseURL)
+				}
+				return ctx
+			}),
+		)
+
+		runtimeConfig, err := config.LoadRuntime()
+		if err != nil {
+			log.Fatalf("Runtime config error: %v", err)
+		}
+
+		mux := http.NewServeMux()
+		mux.Handle(httpConfig.Endpoint, streamableHTTPServer)
+		mux.Handle(config.TenantPathPrefix, streamableHTTPServer)
+		authMiddleware := auth.NewMiddleware(runtimeConfig.BaseURL, httpConfig)
+		handler := authMiddleware.Protect(mux)
+
+		log.Printf("Asgardeo MCP streamable HTTP server listening on %s%s", httpConfig.Addr, httpConfig.Endpoint)
+		if err := http.ListenAndServe(httpConfig.Addr, handler); err != nil {
+			log.Fatalf("Server error: %v", err)
+		}
+		return
+	}
+
 	if err := server.ServeStdio(s); err != nil {
 		log.Fatalf("Server error: %v", err)
 	}

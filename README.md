@@ -62,6 +62,44 @@ With tools like Claude Desktop, you can:
 
 7. **Configure Your MCP Client**:
 
+#### Streamable HTTP
+
+The server can also run as a streamable HTTP MCP server. In this mode, MCP clients authenticate with Asgardeo/WSO2 Identity Server using the authorization code grant and send the resulting access token to the MCP server as a bearer token.
+
+Create an OIDC application for the MCP client with client ID `ASGARDEO_MCP_CLIENT`, enable the authorization code grant with PKCE, configure the redirect URLs required by your MCP client, and authorize the same management API scopes listed above.
+
+Run the server:
+
+```bash
+BASE_URL="https://api.asgardeo.io" \
+TRANSPORT=http \
+MCP_SERVER_URL="http://localhost:8080/t/<asgardeo organization>/mcp" \
+MCP_SCOPES="internal_application_mgt_view internal_application_mgt_update internal_application_mgt_create internal_api_resource_create internal_api_resource_view internal_claim_meta_view internal_user_mgt_create internal_oidc_scope_mgt_view" \
+./asgardeo-mcp
+```
+
+Configure your MCP client with the tenant-specific MCP endpoint:
+
+```text
+http://localhost:8080/t/<asgardeo organization>/mcp
+```
+
+The server appends `/t/<asgardeo organization>` dynamically when validating tokens and calling Asgardeo APIs. The startup `BASE_URL` should be the Asgardeo environment root, such as `https://api.asgardeo.io` or `https://dev.api.asgardeo.io`.
+
+The server exposes OAuth protected resource metadata at `/.well-known/oauth-protected-resource/t/<asgardeo organization>/mcp` and returns `WWW-Authenticate` challenges for unauthenticated requests.
+
+Optional HTTP environment variables:
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `HTTP_ADDR` | Address used by the HTTP server | `:8080` |
+| `HTTP_ENDPOINT` | MCP streamable HTTP endpoint path | `/mcp` |
+| `MCP_SERVER_URL` | Canonical resource URI clients use in OAuth `resource` requests. Use `<org>` as a placeholder for multi-tenant deployments. | `http://localhost:8080/t/<org>/mcp` |
+| `MCP_CLIENT_ID` | Pre-registered OAuth client ID for MCP clients | `ASGARDEO_MCP_CLIENT` |
+| `MCP_SCOPES` | Space-separated scopes advertised to MCP clients | Empty |
+| `TOKEN_AUDIENCE` | Expected access token audience | `MCP_SERVER_URL` |
+| `TOKEN_ISSUER` | Expected access token issuer. Use `<org>` as a placeholder for multi-tenant deployments. | `BASE_URL/t/<org>/oauth2/token` |
+
 #### VS Code (GitHub Copilot)
 
 - Install the GitHub Copilot extension.

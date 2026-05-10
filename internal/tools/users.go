@@ -32,12 +32,6 @@ import (
 
 func GetCreateUserTool() (mcp.Tool, server.ToolHandlerFunc) {
 	productName := config.GetProductName()
-	client, err := asgardeo.GetClientInstance(context.Background())
-
-	if err != nil {
-		log.Printf("Error initializing client instance: %v", err)
-	}
-
 	userCreateTool := mcp.NewTool("create_user",
 		mcp.WithDescription(fmt.Sprintf("Create a user in %s", productName)),
 
@@ -68,14 +62,20 @@ func GetCreateUserTool() (mcp.Tool, server.ToolHandlerFunc) {
 	)
 
 	userCreateToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		username := req.Params.Arguments["username"].(string)
-		password := req.Params.Arguments["password"].(string)
-		email := req.Params.Arguments["email"].(string)
-		firstName := req.Params.Arguments["first_name"].(string)
-		lastName := req.Params.Arguments["last_name"].(string)
+		client, err := asgardeo.GetClientInstance(ctx)
+		if err != nil {
+			log.Printf("Error initializing client instance: %v", err)
+			return mcp.NewToolResultError(err.Error()), nil
+		}
+
+		username := req.GetArguments()["username"].(string)
+		password := req.GetArguments()["password"].(string)
+		email := req.GetArguments()["email"].(string)
+		firstName := req.GetArguments()["first_name"].(string)
+		lastName := req.GetArguments()["last_name"].(string)
 		userstoreDomain := "DEFAULT"
-		if req.Params.Arguments["userstore_domain"] != nil {
-			userstoreDomain = req.Params.Arguments["userstore_domain"].(string)
+		if req.GetArguments()["userstore_domain"] != nil {
+			userstoreDomain = req.GetArguments()["userstore_domain"].(string)
 		}
 
 		user := user.UserCreateModel{

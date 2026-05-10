@@ -24,6 +24,24 @@ const (
 	CLIENT_SECRET_PARAM    = "CLIENT_SECRET"
 	CERTIFICATE_PATH_PARAM = "CERT_PATH"
 	PRODUCT_MODE_PARAM     = "PRODUCT_MODE"
+	ORG_HANDLE_PARAM       = "ORG_HANDLE"
+	TRANSPORT_PARAM        = "TRANSPORT"
+	HTTP_ADDR_PARAM        = "HTTP_ADDR"
+	HTTP_ENDPOINT_PARAM    = "HTTP_ENDPOINT"
+	MCP_SERVER_URL_PARAM   = "MCP_SERVER_URL"
+	MCP_SCOPES_PARAM       = "MCP_SCOPES"
+	MCP_CLIENT_ID_PARAM    = "MCP_CLIENT_ID"
+	TOKEN_AUDIENCE_PARAM   = "TOKEN_AUDIENCE"
+	TOKEN_ISSUER_PARAM     = "TOKEN_ISSUER"
+)
+
+const (
+	DefaultTransport    = "stdio"
+	HTTPTransport       = "http"
+	DefaultHTTPAddr     = ":8080"
+	DefaultHTTPEndpoint = "/mcp"
+	DefaultMCPClientID  = "ASGARDEO_MCP_CLIENT"
+	TenantPathPrefix    = "/t/"
 )
 
 // Deprecated constants for backward compatibility
