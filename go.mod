@@ -5,7 +5,7 @@ go 1.23
 toolchain go1.23.8
 
 require (
-	github.com/asgardeo/go v0.0.17
+	github.com/asgardeo/go v0.0.18
 	github.com/mark3labs/mcp-go v0.34.0
 )
 
@@ -17,5 +17,3 @@ require (
 	github.com/yosida95/uritemplate/v3 v3.0.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
-
-replace github.com/asgardeo/go => github.com/RovinKYK/go v0.0.18-0.20261029142343-786e9a9eedc3
