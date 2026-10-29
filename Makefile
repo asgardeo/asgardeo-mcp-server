@@ -28,20 +28,24 @@ all: lint test build-linux build-linux-arm build-darwin
 
 build: clean test build-linux build-linux-arm build-darwin
 
+# Servers to build: asgardeo-mcp, self-service-mcp, or both (default)
+SERVER ?= asgardeo-mcp self-service-mcp
+LDFLAGS := -ldflags "-X main.version=$(BUILD_VERSION)"
+
 build-linux:
 	mkdir -p $(BUILD_DIR)/linux
-	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "-X main.version=$(BUILD_VERSION)" \
-	-o $(BUILD_DIR)/linux/asgardeo-mcp $(PROJECT_ROOT)/main.go
+	$(foreach s,$(SERVER),GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build $(LDFLAGS) \
+	-o $(BUILD_DIR)/linux/$(s) $(PROJECT_ROOT)/cmd/$(s) &&) true
 
 build-linux-arm:
 	mkdir -p $(BUILD_DIR)/linux-arm
-	GOOS=linux GOARCH=arm CGO_ENABLED=0 go build -ldflags "-X main.version=$(BUILD_VERSION)" \
-	-o $(BUILD_DIR)/linux-arm/asgardeo-mcp $(PROJECT_ROOT)/main.go
+	$(foreach s,$(SERVER),GOOS=linux GOARCH=arm CGO_ENABLED=0 go build $(LDFLAGS) \
+	-o $(BUILD_DIR)/linux-arm/$(s) $(PROJECT_ROOT)/cmd/$(s) &&) true
 
 build-darwin:
 	mkdir -p $(BUILD_DIR)/darwin
-	GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "-X main.version=$(BUILD_VERSION)" \
-	-o $(BUILD_DIR)/darwin/asgardeo-mcp $(PROJECT_ROOT)/main.go
+	$(foreach s,$(SERVER),GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 go build $(LDFLAGS) \
+	-o $(BUILD_DIR)/darwin/$(s) $(PROJECT_ROOT)/cmd/$(s) &&) true
 
 # Clean build artifacts
 clean:
@@ -76,7 +80,7 @@ vet:
 help:
 	@echo "Available targets:"
 	@echo "  all        : Run lint, test, and build"
-	@echo "  build      : Build the application"
+	@echo "  build      : Build the servers (SERVER=asgardeo-mcp or SERVER=self-service-mcp to build one)"
 	@echo "  clean      : Clean build artifacts"
 	@echo "  test       : Run tests"
 	@echo "  coverage   : Run tests with coverage report"

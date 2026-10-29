@@ -18,6 +18,7 @@ UPSTREAM_BRANCH="main"
 GIT_TOKEN=$1
 WORK_DIR=$2
 VERSION_TYPE=$3 # possible values: major, minor, patch
+SERVER=$4 # possible values: asgardeo-mcp, self-service-mcp
 
 # Check if GIT_TOKEN is empty
 if [ -z "$GIT_TOKEN" ]; then
@@ -37,6 +38,28 @@ if [[ "$VERSION_TYPE" != "major" && "$VERSION_TYPE" != "minor" && "$VERSION_TYPE
   exit 1
 fi
 
+# Each server is released with its own tags and packages.
+case "$SERVER" in
+  asgardeo-mcp)
+    TAG_PREFIX="asgardeo-mcp-v"
+    # Releases before the self-service server were tagged vX.Y.Z.
+    LEGACY_TAG_PREFIX="v"
+    PACKAGE_PREFIX="asgardeo_mcp_server"
+    SERVER_NAME="Asgardeo MCP Server"
+    MARK_LATEST="true"
+    ;;
+  self-service-mcp)
+    TAG_PREFIX="self-service-mcp-v"
+    PACKAGE_PREFIX="self_service_mcp_server"
+    SERVER_NAME="Self Service MCP Server"
+    MARK_LATEST="false"
+    ;;
+  *)
+    echo "❌ Error: SERVER must be one of: asgardeo-mcp or self-service-mcp."
+    exit 1
+    ;;
+esac
+
 BUILD_DIRECTORY="$WORK_DIR/build"
 RELEASE_DIRECTORY="$BUILD_DIRECTORY/releases"
 
@@ -50,8 +73,13 @@ else
   rm -rf "$RELEASE_DIRECTORY"/*
 fi
 
-# Extract current version.
-CURRENT_VERSION=$(git tag --sort=-v:refname | head -n 1 | sed 's/^v//' || echo "0.0.0")
+# Extract the current version of this server only.
+CURRENT_VERSION=$(
+  for prefix in "${TAG_PREFIX}" ${LEGACY_TAG_PREFIX:+"$LEGACY_TAG_PREFIX"}; do
+    git tag -l "${prefix}*" | grep -E "^${prefix}[0-9]+\.[0-9]+\.[0-9]+$" | sed "s/^${prefix}//" || true
+  done | sort -t. -k1,1n -k2,2n -k3,3n | tail -n 1
+)
+CURRENT_VERSION=${CURRENT_VERSION:-0.0.0}
 echo "Current Version: ${CURRENT_VERSION}"
 IFS='.' read -r MAJOR MINOR PATCH <<< "${CURRENT_VERSION}"
 
@@ -73,6 +101,9 @@ esac
 
 NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}"
 
+echo "Building ${SERVER} ${NEW_VERSION}..."
+make build-linux build-linux-arm build-darwin SERVER="${SERVER}" BUILD_VERSION="${NEW_VERSION}"
+
 echo "Creating release packages for version $NEW_VERSION..."
 
 # List of supported OSes.
@@ -85,7 +116,7 @@ for os in "${oses[@]}"; do
   os_dir="../$os"
   
   if [ -d "$os_dir" ]; then
-    release_artifact_folder="asgardeo_mcp_server_${os}-v${NEW_VERSION}"
+    release_artifact_folder="${PACKAGE_PREFIX}_${os}-v${NEW_VERSION}"
     mkdir -p "$release_artifact_folder"
 
     cp -r $os_dir/* "$release_artifact_folder"
@@ -117,9 +148,9 @@ cd "${WORK_DIR}"
 FILES_TO_UPLOAD=$(find build/releases -type f \( -name "*.zip" -o -name "*.sha256" \))
 
 # Create a release with the current version.
-TAG_NAME="v${NEW_VERSION}"
+TAG_NAME="${TAG_PREFIX}${NEW_VERSION}"
 export GITHUB_TOKEN="${GIT_TOKEN}"
-gh release create "${TAG_NAME}" ${FILES_TO_UPLOAD} --title "${TAG_NAME}" --notes "Asgardeo MCP Server - ${TAG_NAME}" --target "${UPSTREAM_BRANCH}" || { echo "Failed to create release"; exit 1; }
+gh release create "${TAG_NAME}" ${FILES_TO_UPLOAD} --title "${TAG_NAME}" --notes "${SERVER_NAME} - ${TAG_NAME}" --target "${UPSTREAM_BRANCH}" --latest="${MARK_LATEST}" || { echo "Failed to create release"; exit 1; }
 
 
 echo "Release ${TAG_NAME} created successfully."

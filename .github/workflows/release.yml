@@ -12,6 +12,13 @@ name: Release
 on:
   workflow_dispatch:
     inputs:
+      server:
+        type: choice
+        description: Choose the MCP server to release
+        options:
+            - 'asgardeo-mcp'
+            - 'self-service-mcp'
+        required: true
       version_type:
         type: choice
         description: Choose the type of version update
@@ -54,11 +61,11 @@ jobs:
       - name: Install dependencies
         run: go mod download
 
-      - name: Build and test
-        run: make build
+      - name: Test
+        run: make test
         working-directory: .
 
       - name: Update artifact version, package, commit, and create release.
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: bash ./.github/scripts/release.sh $GITHUB_TOKEN ${{ github.workspace }} ${{ github.event.inputs.version_type }}
+        run: bash ./.github/scripts/release.sh $GITHUB_TOKEN ${{ github.workspace }} ${{ github.event.inputs.version_type }} ${{ github.event.inputs.server }}

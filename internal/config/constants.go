@@ -24,6 +24,10 @@ const (
 	CLIENT_SECRET_PARAM    = "CLIENT_SECRET"
 	CERTIFICATE_PATH_PARAM = "CERT_PATH"
 	PRODUCT_MODE_PARAM     = "PRODUCT_MODE"
+	ACCESS_TOKEN_PARAM     = "ACCESS_TOKEN"
+	TRANSPORT_PARAM        = "TRANSPORT"
+	PORT_PARAM             = "PORT"
+	PORTAL_NAME_PARAM      = "PORTAL_NAME"
 )
 
 // Deprecated constants for backward compatibility

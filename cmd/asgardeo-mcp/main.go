@@ -25,11 +25,14 @@ import (
 	"github.com/mark3labs/mcp-go/server"
 )
 
+// version is set at build time with -ldflags "-X main.version=<version>".
+var version = "dev"
+
 // setupServer configures the MCP server and registers tools.
 func setupServer() *server.MCPServer {
 	s := server.NewMCPServer(
 		"Asgardeo Management MCP",
-		"0.0.1",
+		version,
 		server.WithResourceCapabilities(true, true),
 		server.WithToolCapabilities(true),
 		server.WithLogging(),
