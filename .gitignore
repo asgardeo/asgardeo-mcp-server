@@ -23,7 +23,8 @@
 hs_err_pid*
 replay_pid*
 .env
-asgardeo-mcp
+/asgardeo-mcp
+/self-service-mcp
 
 build
 

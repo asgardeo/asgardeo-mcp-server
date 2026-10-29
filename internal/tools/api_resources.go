@@ -55,7 +55,7 @@ func GetListAPIResourcesTool() (mcp.Tool, server.ToolHandlerFunc) {
 	)
 
 	apiResourceListToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		args := req.Params.Arguments
+		args := req.GetArguments()
 		limit := utils.GetOptionalParam[int](args, "limit")
 		filter := utils.GetOptionalParam[string](args, "filter")
 		before := utils.GetOptionalParam[string](args, "before")
@@ -108,7 +108,7 @@ func GetSearchAPIResourcesByNameTool() (mcp.Tool, server.ToolHandlerFunc) {
 	)
 
 	apiResourceSearchByNameToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		name := req.Params.Arguments["name"].(string)
+		name := req.GetArguments()["name"].(string)
 		resp, err := client.APIResource.GetByName(ctx, name)
 		if err != nil {
 			log.Printf("Error getting api resource list by name: %v", err)
@@ -148,7 +148,7 @@ func GetSearchAPIResourceByIdentifierTool() (mcp.Tool, server.ToolHandlerFunc) {
 	)
 
 	apiResourceGetByIdentifierToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		identifier := req.Params.Arguments["identifier"].(string)
+		identifier := req.GetArguments()["identifier"].(string)
 		resp, err := client.APIResource.GetByIdentifier(ctx, identifier)
 		if err != nil {
 			log.Printf("Error getting api resource by identifier: %v", err)
@@ -203,9 +203,9 @@ func GetCreateAPIResourceTool() (mcp.Tool, server.ToolHandlerFunc) {
 	)
 
 	apiResourceCreateToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		name := req.Params.Arguments["name"].(string)
-		identifier := req.Params.Arguments["identifier"].(string)
-		inputScopes := req.Params.Arguments["scopes"].([]interface{})
+		name := req.GetArguments()["name"].(string)
+		identifier := req.GetArguments()["identifier"].(string)
+		inputScopes := req.GetArguments()["scopes"].([]interface{})
 		scopes := make([]api_resource.ScopeCreateModel, len(inputScopes))
 		for i, inputScope := range inputScopes {
 			scope := api_resource.ScopeCreateModel{}
@@ -238,7 +238,7 @@ func GetCreateAPIResourceTool() (mcp.Tool, server.ToolHandlerFunc) {
 			scopes[i] = scope
 		}
 
-		requiresAuthorization := req.Params.Arguments["requiresAuthorization"].(bool)
+		requiresAuthorization := req.GetArguments()["requiresAuthorization"].(bool)
 		newApiResource := api_resource.APIResourceCreateModel{
 			Name:                  name,
 			Identifier:            identifier,

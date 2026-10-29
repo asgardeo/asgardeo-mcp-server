@@ -81,8 +81,8 @@ func GetCreateSinglePageAppTool() (mcp.Tool, server.ToolHandlerFunc) {
 	)
 
 	spaToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		appName := req.Params.Arguments["application_name"].(string)
-		redirectURL := req.Params.Arguments["redirect_url"].(string)
+		appName := req.GetArguments()["application_name"].(string)
+		redirectURL := req.GetArguments()["redirect_url"].(string)
 
 		spa, err := client.Application.CreateSinglePageApp(ctx, appName, redirectURL)
 		if err != nil {
@@ -134,8 +134,8 @@ func GetCreateWebAppWithSSRTool() (mcp.Tool, server.ToolHandlerFunc) {
 	)
 
 	webappToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		appName := req.Params.Arguments["application_name"].(string)
-		redirectURL := req.Params.Arguments["redirect_url"].(string)
+		appName := req.GetArguments()["application_name"].(string)
+		redirectURL := req.GetArguments()["redirect_url"].(string)
 
 		webapp, err := client.Application.CreateWebAppWithSSR(ctx, appName, redirectURL)
 		if err != nil {
@@ -187,8 +187,8 @@ func GetCreateMobileAppTool() (mcp.Tool, server.ToolHandlerFunc) {
 	)
 
 	mobileAppToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		appName := req.Params.Arguments["application_name"].(string)
-		redirectURL := req.Params.Arguments["redirect_url"].(string)
+		appName := req.GetArguments()["application_name"].(string)
+		redirectURL := req.GetArguments()["redirect_url"].(string)
 
 		mobileApp, err := client.Application.CreateMobileApp(ctx, appName, redirectURL)
 		if err != nil {
@@ -239,7 +239,7 @@ func GetCreateM2MAppTool() (mcp.Tool, server.ToolHandlerFunc) {
 	)
 
 	mobileAppToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		appName := req.Params.Arguments["application_name"].(string)
+		appName := req.GetArguments()["application_name"].(string)
 
 		m2mApp, err := client.Application.CreateM2MApp(ctx, appName)
 		if err != nil {
@@ -286,7 +286,7 @@ func GetSearchApplicationByNameTool() (mcp.Tool, server.ToolHandlerFunc) {
 	)
 
 	getApplicationByNameToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		appName := req.Params.Arguments["application_name"].(string)
+		appName := req.GetArguments()["application_name"].(string)
 
 		app, err := client.Application.GetByName(ctx, appName)
 		if err != nil {
@@ -337,7 +337,7 @@ func GetSearchApplicationByClientIdTool() (mcp.Tool, server.ToolHandlerFunc) {
 	)
 
 	getApplicationByClientIDToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		appName := req.Params.Arguments["client_id"].(string)
+		appName := req.GetArguments()["client_id"].(string)
 
 		app, err := client.Application.GetByClienId(ctx, appName)
 		if err != nil {
@@ -393,25 +393,25 @@ func GetUpdateApplicationBasicInfoTool() (mcp.Tool, server.ToolHandlerFunc) {
 	)
 
 	updateApplicationBasicInfoToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		appId := req.Params.Arguments["id"].(string)
+		appId := req.GetArguments()["id"].(string)
 
 		basicInfoUpdate := application.NewBasicInfoUpdate()
-		if name, ok := req.Params.Arguments["name"]; ok && name != nil {
+		if name, ok := req.GetArguments()["name"]; ok && name != nil {
 			basicInfoUpdate.WithName(name.(string))
 		}
-		if description, ok := req.Params.Arguments["description"]; ok && description != nil {
+		if description, ok := req.GetArguments()["description"]; ok && description != nil {
 			basicInfoUpdate.WithDescription(description.(string))
 		}
-		if imageUrl, ok := req.Params.Arguments["image_url"]; ok && imageUrl != nil {
+		if imageUrl, ok := req.GetArguments()["image_url"]; ok && imageUrl != nil {
 			basicInfoUpdate.WithImageUrl(imageUrl.(string))
 		}
-		if accessUrl, ok := req.Params.Arguments["access_url"]; ok && accessUrl != nil {
+		if accessUrl, ok := req.GetArguments()["access_url"]; ok && accessUrl != nil {
 			basicInfoUpdate.WithAccessUrl(accessUrl.(string))
 		}
-		if logoutReturnUrl, ok := req.Params.Arguments["logout_return_url"]; ok && logoutReturnUrl != nil {
+		if logoutReturnUrl, ok := req.GetArguments()["logout_return_url"]; ok && logoutReturnUrl != nil {
 			basicInfoUpdate.WithLogoutReturnUrl(logoutReturnUrl.(string))
 		}
-		if name, ok := req.Params.Arguments["name"]; ok && name != nil {
+		if name, ok := req.GetArguments()["name"]; ok && name != nil {
 			basicInfoUpdate.WithName(name.(string))
 		}
 
@@ -450,32 +450,32 @@ func GetUpdateApplicationOAuthConfigTool() (mcp.Tool, server.ToolHandlerFunc) {
 	)
 
 	updateApplicationOAuthConfigToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		appId := req.Params.Arguments["id"].(string)
+		appId := req.GetArguments()["id"].(string)
 
 		OAuthConfigUpdate := application.NewOAuthConfigUpdate()
-		if redirectURLs, ok := req.Params.Arguments["redirect_urls"]; ok && redirectURLs != nil {
+		if redirectURLs, ok := req.GetArguments()["redirect_urls"]; ok && redirectURLs != nil {
 			urls := convertToStringSlice(redirectURLs)
 			OAuthConfigUpdate.WithCallbackURLs(urls)
 		}
 
-		if allowedOrigins, ok := req.Params.Arguments["allowed_origins"]; ok && allowedOrigins != nil {
+		if allowedOrigins, ok := req.GetArguments()["allowed_origins"]; ok && allowedOrigins != nil {
 			origins := convertToStringSlice(allowedOrigins)
 			OAuthConfigUpdate.WithAllowedOrigins(origins)
 		}
 
-		if userExpiry, ok := req.Params.Arguments["user_access_token_expiry_time"]; ok && userExpiry != nil {
+		if userExpiry, ok := req.GetArguments()["user_access_token_expiry_time"]; ok && userExpiry != nil {
 			OAuthConfigUpdate.WithUserAccessTokenExpiry(int64(userExpiry.(float64)))
 		}
 
-		if appExpiry, ok := req.Params.Arguments["application_access_token_expiry_time"]; ok && appExpiry != nil {
+		if appExpiry, ok := req.GetArguments()["application_access_token_expiry_time"]; ok && appExpiry != nil {
 			OAuthConfigUpdate.WithApplicationAccessTokenExpiry(int64(appExpiry.(float64)))
 		}
 
-		if refreshExpiry, ok := req.Params.Arguments["refresh_token_expiry_time"]; ok && refreshExpiry != nil {
+		if refreshExpiry, ok := req.GetArguments()["refresh_token_expiry_time"]; ok && refreshExpiry != nil {
 			OAuthConfigUpdate.WithRefreshTokenExpiry(int64(refreshExpiry.(float64)))
 		}
 
-		if attributes, ok := req.Params.Arguments["access_token_attributes"]; ok && attributes != nil {
+		if attributes, ok := req.GetArguments()["access_token_attributes"]; ok && attributes != nil {
 			attrs := convertToStringSlice(attributes)
 			OAuthConfigUpdate.WithAccessTokenAttributes(attrs)
 		}
@@ -516,8 +516,8 @@ func GetUpdateApplicationClaimConfigTool() (mcp.Tool, server.ToolHandlerFunc) {
 	)
 
 	updateApplicationClaimConfigToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		appId := req.Params.Arguments["id"].(string)
-		claimsInput, ok := req.Params.Arguments["claims"].([]interface{})
+		appId := req.GetArguments()["id"].(string)
+		claimsInput, ok := req.GetArguments()["claims"].([]interface{})
 		if !ok {
 			return nil, fmt.Errorf("invalid claim format: expected an array of strings")
 		}
@@ -587,10 +587,10 @@ func GetAuthorizeAPITool() (mcp.Tool, server.ToolHandlerFunc) {
 		),
 	)
 	authorizeAPIToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		appId := req.Params.Arguments["appId"].(string)
-		id := req.Params.Arguments["id"].(string)
-		policyIdentifier := req.Params.Arguments["policyIdentifier"].(string)
-		rawScopes := req.Params.Arguments["scopes"].([]interface{})
+		appId := req.GetArguments()["appId"].(string)
+		id := req.GetArguments()["id"].(string)
+		policyIdentifier := req.GetArguments()["policyIdentifier"].(string)
+		rawScopes := req.GetArguments()["scopes"].([]interface{})
 		scopes := make([]string, len(rawScopes))
 		for i, s := range rawScopes {
 			scopes[i] = s.(string)
@@ -630,7 +630,7 @@ func GetListAuthorizedAPITool() (mcp.Tool, server.ToolHandlerFunc) {
 	)
 
 	authorizedAPIListToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		appId := req.Params.Arguments["app_id"].(string)
+		appId := req.GetArguments()["app_id"].(string)
 
 		resp, err := client.Application.GetAuthorizedAPIs(ctx, appId)
 		if err != nil {
@@ -693,8 +693,8 @@ func GetUpdateLoginFlowTool() (mcp.Tool, server.ToolHandlerFunc) {
 	)
 
 	updateLoginFlowToolImpl := func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		userPrompt := req.Params.Arguments["user_prompt"].(string)
-		appId := req.Params.Arguments["app_id"].(string)
+		userPrompt := req.GetArguments()["user_prompt"].(string)
+		appId := req.GetArguments()["app_id"].(string)
 
 		loginFlowResponse, err := client.Application.GenerateLoginFlow(ctx, userPrompt)
 		if err != nil {
