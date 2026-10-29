@@ -42,19 +42,6 @@ PORT=8000 BASE_URL=https://api.asgardeo.io/t/<asgardeo organization> ./self-serv
 - The server keeps no session or token. Asgardeo / WSO2 Identity Server validates the token on every call.
 - Serve it behind HTTPS (for example a reverse proxy or load balancer that terminates TLS).
 
-An MCP client connects to it like this, for example in VS Code `mcp.json`:
-```json
-{
-  "servers": {
-    "self-service-mcp": {
-      "type": "http",
-      "url": "https://<your host>/mcp",
-      "headers": { "Authorization": "Bearer <user access token>" }
-    }
-  }
-}
-```
-
 ### Configuration
 
 | Variable | Required | Description |
