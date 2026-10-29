@@ -68,12 +68,13 @@ func main() {
 	transport := os.Getenv(config.TRANSPORT_PARAM)
 	token := ""
 	switch transport {
-	case "", "stdio":
+	case "", "http":
+		transport = "http"
+	case "stdio":
 		token = os.Getenv(config.ACCESS_TOKEN_PARAM)
 		if token == "" {
 			log.Fatalf("Configuration error: missing required environment variable ACCESS_TOKEN")
 		}
-	case "http":
 	default:
 		log.Fatalf("Configuration error: TRANSPORT must be stdio or http, got %q", transport)
 	}

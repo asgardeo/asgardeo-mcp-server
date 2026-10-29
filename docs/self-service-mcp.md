@@ -1,6 +1,6 @@
 # Self Service MCP Server
 
-The Self Service MCP Server lets an AI agent manage **the signed-in user's own account** in Asgardeo or WSO2 Identity Server, using that user's access token. It runs locally over stdio, or you can host it over HTTP for the users of your own application.
+The Self Service MCP Server lets an AI agent manage **the signed-in user's own account** in Asgardeo or WSO2 Identity Server, using that user's access token. You host it over HTTP for the users of your own application.
 
 With it, a user can ask their agent to:
 
@@ -30,50 +30,15 @@ Build the executable from the repository root:
 go build -o self-service-mcp ./cmd/self-service-mcp
 ```
 
-### Option 1: Run locally (stdio)
-
-The user's token is set in the MCP client configuration.
-
-1. Note the absolute path of the `self-service-mcp` binary.
-2. **Configure your MCP client**, for example in VS Code `mcp.json`:
-   ```json
-   {
-     "servers": {
-       "self-service-mcp": {
-         "type": "stdio",
-         "command": "<absolute path to the self-service-mcp executable>",
-         "args": [],
-         "env": {
-           "BASE_URL": "https://api.asgardeo.io/t/<asgardeo organization>",
-           "ACCESS_TOKEN": "<user access token>"
-         }
-       }
-     }
-   }
-   ```
-   For Claude Desktop (`claude_desktop_config.json`) or Cursor (`mcp.json`):
-   ```json
-   "self-service-mcp": {
-     "command": "<absolute path to the self-service-mcp executable>",
-     "args": [],
-     "env": {
-       "BASE_URL": "https://api.asgardeo.io/t/<asgardeo organization>",
-       "ACCESS_TOKEN": "<user access token>"
-     }
-   }
-   ```
-
-When the token expires, replace it and restart the server.
-
-### Option 2: Host it (HTTP)
+### Host it (HTTP)
 
 Run one server for all the users of your application. It serves the MCP Streamable HTTP transport at `/mcp`.
 
 ```bash
-TRANSPORT=http PORT=8000 BASE_URL=https://api.asgardeo.io/t/<asgardeo organization> ./self-service-mcp
+PORT=8000 BASE_URL=https://api.asgardeo.io/t/<asgardeo organization> ./self-service-mcp
 ```
 
-- Every request must carry the signed-in user's token as a bearer token in the `Authorization` header (`Authorization: Bearer <user access token>`). The server uses this token for its calls to Asgardeo / WSO2 Identity Server, so each call acts as the user who sent it. Requests without a bearer token get `401`.
+- Your MCP client must send the access token the user receives when signing in to your application, as a bearer token in the `Authorization` header of each request (`Authorization: Bearer <user access token>`). The server uses this token for its calls to Asgardeo / WSO2 Identity Server, so each call acts as the user who sent it.
 - The server keeps no session or token. Asgardeo / WSO2 Identity Server validates the token on every call.
 - Serve it behind HTTPS (for example a reverse proxy or load balancer that terminates TLS).
 
@@ -95,7 +60,7 @@ An MCP client connects to it like this, for example in VS Code `mcp.json`:
 | Variable | Required | Description |
 |---|---|---|
 | `BASE_URL` | yes | `https://api.asgardeo.io/t/<organization>` or `https://<is-host>/t/<tenant-domain>` |
-| `TRANSPORT` | no | `stdio` (default) or `http` |
+| `TRANSPORT` | no | `http` (default) or `stdio` |
 | `ACCESS_TOKEN` | stdio only | The user's access token |
 | `PORT` | no | HTTP port. Default `8000` |
 | `CLIENT_ID` | no | Client ID of the application the token came from. The agent keeps this app's access when revoking apps. |
@@ -163,6 +128,6 @@ What have I consented to?
 
 ## Troubleshooting
 
-- **401**: the access token is missing, expired or revoked. Get a new token (stdio: update `ACCESS_TOKEN` and restart the server).
+- **401**: the access token is missing, expired or revoked. The user needs to sign in again to get a new token.
 - **403**: the token doesn't have the `internal_login` scope.
 - **404**: the feature isn't available on this server version.
