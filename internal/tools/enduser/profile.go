@@ -22,12 +22,11 @@ import (
 	"context"
 	"fmt"
 	"maps"
-	"net/http"
-	"net/url"
 	"slices"
 	"strings"
 
-	"github.com/asgardeo/mcp/internal/selfservice"
+	"github.com/asgardeo/go/pkg/sdk"
+	"github.com/asgardeo/go/pkg/user"
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 )
@@ -37,7 +36,7 @@ const (
 	extensionSchema = "urn:scim:wso2:schema"
 )
 
-// protectedAttributes are never changed by the agent, even when the server reports them as READ_WRITE.
+// protectedAttributes are never changed by the agent.
 var protectedAttributes = map[string]bool{
 	"username": true, "accountlocked": true, "accountdisabled": true,
 	"verifiedemailaddresses": true, "verifiedmobilenumbers": true, "verifyemail": true, "verifymobile": true,
@@ -59,22 +58,18 @@ type profileAttribute struct {
 	CanonicalValues []interface{} `json:"canonicalValues,omitempty"`
 
 	schema, attr, sub string
-	// typed is set for an entry of a multi-valued attribute, such as phoneNumbers.home.
+	// typed is set for a multi-valued entry, such as phoneNumbers.home.
 	typed bool
 }
 
-func profileTools(c *selfservice.Client) []server.ServerTool {
+func profileTools(c *sdk.Client) []server.ServerTool {
 	return []server.ServerTool{
 		newTool("get_profile",
 			"Gets the signed-in user's profile: name, emails, mobile numbers, addresses and other attributes. "+
 				"An email or mobile number not in verifiedEmailAddresses / verifiedMobileNumbers is unverified.",
 			read,
 			func(ctx context.Context, args map[string]interface{}) (interface{}, error) {
-				query := url.Values{}
-				if attrs := str(args, "attributes"); attrs != "" {
-					query.Set("attributes", attrs)
-				}
-				return c.Get(ctx, "/scim2/Me", query)
+				return getProfile(ctx, c, str(args, "attributes"))
 			},
 			mcp.WithString("attributes", mcp.Description("Comma-separated attributes to return, e.g. name,emails. Returns all when empty.")),
 		),
@@ -108,7 +103,7 @@ func profileTools(c *selfservice.Client) []server.ServerTool {
 	}
 }
 
-func contactTool(c *selfservice.Client, ct contactType, name, label string) server.ServerTool {
+func contactTool(c *sdk.Client, ct contactType, name, label string) server.ServerTool {
 	return newTool(name,
 		fmt.Sprintf("Adds a %[1]s to the signed-in user's account, removes one, or makes one the primary %[1]s. "+
 			"The primary %[1]s can't be removed; make another one primary first.", label),
@@ -130,8 +125,8 @@ func contactTool(c *selfservice.Client, ct contactType, name, label string) serv
 }
 
 // loadProfileAttributes reads the end-user profile from the server's SCIM schemas.
-func loadProfileAttributes(ctx context.Context, c *selfservice.Client) ([]profileAttribute, error) {
-	schemas, err := c.Get(ctx, "/scim2/Schemas", nil)
+func loadProfileAttributes(ctx context.Context, c *sdk.Client) ([]profileAttribute, error) {
+	schemas, err := c.User.GetSchemas(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -147,7 +142,7 @@ func loadProfileAttributes(ctx context.Context, c *selfservice.Client) ([]profil
 			multiValued, _ := attr["multiValued"].(bool)
 			subAttrs := asList(attr["subAttributes"])
 
-			// Avoid showing a complex attribute without sub-attributes, except the primary email.
+			// Skip complex attributes without sub-attributes, except emails.
 			complex := strings.EqualFold(fmt.Sprint(attr["type"]), "complex")
 			if len(subAttrs) == 0 && inProfile(attr) && (!complex || name == "emails") {
 				attrs = append(attrs, newProfileAttribute(schemaID, name, "", attr, false))
@@ -162,7 +157,7 @@ func loadProfileAttributes(ctx context.Context, c *selfservice.Client) ([]profil
 		}
 	}
 
-	// A name in more than one schema is listed with its schema, e.g. urn:...:User:department.
+	// Names in more than one schema are prefixed with the schema.
 	nameCount := map[string]int{}
 	for _, a := range attrs {
 		nameCount[a.Name]++
@@ -248,14 +243,14 @@ func schemaList(resp interface{}) []interface{} {
 	return asList(resp)
 }
 
-// isProtected reports whether an attribute or sub-attribute is never shown to or changed by the agent.
+// isProtected reports whether the agent must not see or change an attribute.
 func isProtected(name string) bool {
 	lower := strings.ToLower(name)
 	return protectedAttributes[lower] || strings.Contains(lower, "password") || strings.Contains(lower, "failed")
 }
 
-// updateProfile checks each attribute against the user's profile and patches them in one request.
-func updateProfile(ctx context.Context, c *selfservice.Client, values map[string]interface{}) (interface{}, error) {
+// updateProfile validates the attributes and patches them in one request.
+func updateProfile(ctx context.Context, c *sdk.Client, values map[string]interface{}) (interface{}, error) {
 	attrs, err := loadProfileAttributes(ctx, c)
 	if err != nil {
 		return nil, err
@@ -265,7 +260,7 @@ func updateProfile(ctx context.Context, c *selfservice.Client, values map[string
 		attrsByName[a.Name] = a
 	}
 
-	var ops []interface{}
+	var ops []user.PatchOperationModel
 	for _, name := range slices.Sorted(maps.Keys(values)) {
 		a, ok := attrsByName[name]
 		switch {
@@ -284,7 +279,7 @@ func updateProfile(ctx context.Context, c *selfservice.Client, values map[string
 }
 
 // patchOperation builds the SCIM operation for one attribute.
-func patchOperation(a profileAttribute, value interface{}) map[string]interface{} {
+func patchOperation(a profileAttribute, value interface{}) user.PatchOperationModel {
 	if value == nil {
 		value = ""
 	}
@@ -296,20 +291,24 @@ func patchOperation(a profileAttribute, value interface{}) map[string]interface{
 		if a.schema != coreUserSchema {
 			path = a.schema + ":" + path
 		}
-		return map[string]interface{}{"op": "remove", "path": path}
+		return patchOp(user.PatchOpRemove, path, nil)
 	case a.typed:
 		field := "value"
 		if a.attr == "addresses" {
 			field = "formatted"
 		}
 		patchValue = map[string]interface{}{a.attr: []interface{}{map[string]interface{}{"type": a.sub, field: value}}}
-		return map[string]interface{}{"op": "add", "value": inSchema(a.schema, patchValue)}
+		return patchOp(user.PatchOpAdd, "", inSchema(a.schema, patchValue))
 	case a.sub != "":
 		patchValue = map[string]interface{}{a.attr: map[string]interface{}{a.sub: value}}
 	default:
 		patchValue = map[string]interface{}{a.attr: value}
 	}
-	return map[string]interface{}{"op": "replace", "value": inSchema(a.schema, patchValue)}
+	return patchOp(user.PatchOpReplace, "", inSchema(a.schema, patchValue))
+}
+
+func patchOp(op, path string, value interface{}) user.PatchOperationModel {
+	return user.PatchOperationModel{Op: op, Path: path, Value: value}
 }
 
 // inSchema nests an extension attribute under its schema.
@@ -320,12 +319,16 @@ func inSchema(schema string, attrs map[string]interface{}) map[string]interface{
 	return map[string]interface{}{schema: attrs}
 }
 
-func patchMe(ctx context.Context, c *selfservice.Client, ops []interface{}) (interface{}, error) {
-	body := map[string]interface{}{
-		"schemas":    []string{"urn:ietf:params:scim:api:messages:2.0:PatchOp"},
-		"Operations": ops,
-	}
-	return c.Do(ctx, http.MethodPatch, "/scim2/Me", nil, body, "application/scim+json")
+// getProfile returns the user's profile as a plain map.
+func getProfile(ctx context.Context, c *sdk.Client, attributes string) (map[string]interface{}, error) {
+	profile, err := c.User.GetMe(ctx, attributes)
+	return profile, err
+}
+
+// patchMe updates the profile and returns it as a plain map.
+func patchMe(ctx context.Context, c *sdk.Client, ops []user.PatchOperationModel) (map[string]interface{}, error) {
+	profile, err := c.User.PatchMe(ctx, ops)
+	return profile, err
 }
 
 func isEmpty(v interface{}) bool {
@@ -348,7 +351,7 @@ type contactType struct {
 	primary      func(me map[string]interface{}) string
 	pending      func(extensionAttrs map[string]interface{}) string
 	clearPending map[string]interface{}
-	setPrimary   func(value string) map[string]interface{}
+	setPrimary   func(value string) user.PatchOperationModel
 }
 
 var emailContact = contactType{
@@ -375,10 +378,10 @@ var emailContact = contactType{
 		return ""
 	},
 	clearPending: map[string]interface{}{"pendingEmails": []interface{}{map[string]interface{}{"type": "value", "value": ""}}},
-	setPrimary: func(value string) map[string]interface{} {
-		return map[string]interface{}{"op": "add", "value": map[string]interface{}{
+	setPrimary: func(value string) user.PatchOperationModel {
+		return patchOp(user.PatchOpAdd, "", map[string]interface{}{
 			"emails": []interface{}{map[string]interface{}{"value": value, "primary": true}},
-		}}
+		})
 	},
 }
 
@@ -400,16 +403,16 @@ var mobileContact = contactType{
 		return number
 	},
 	clearPending: map[string]interface{}{"pendingMobileNumber": ""},
-	setPrimary: func(value string) map[string]interface{} {
-		return map[string]interface{}{"op": "add", "value": map[string]interface{}{
+	setPrimary: func(value string) user.PatchOperationModel {
+		return patchOp(user.PatchOpAdd, "", map[string]interface{}{
 			"phoneNumbers": []interface{}{map[string]interface{}{"type": "mobile", "value": value}},
-		}}
+		})
 	},
 }
 
 // updateContact adds, removes or makes primary an email address or mobile number.
-func updateContact(ctx context.Context, c *selfservice.Client, ct contactType, action, value string) (interface{}, error) {
-	me, err := c.Get(ctx, "/scim2/Me", nil)
+func updateContact(ctx context.Context, c *sdk.Client, ct contactType, action, value string) (interface{}, error) {
+	me, err := getProfile(ctx, c, "")
 	if err != nil {
 		return nil, err
 	}
@@ -417,13 +420,13 @@ func updateContact(ctx context.Context, c *selfservice.Client, ct contactType, a
 	if err != nil {
 		return nil, err
 	}
-	// The list exists when the server allows more than one email or mobile number.
+	// The list exists when multiple values are allowed.
 	hasList := slices.ContainsFunc(attrs, func(a profileAttribute) bool { return a.Name == ct.listAttr && a.Editable })
-	extensionAttrs := asMap(asMap(me)[extensionSchema])
+	extensionAttrs := asMap(me[extensionSchema])
 	current := stringList(extensionAttrs[ct.listAttr])
-	primary := ct.primary(asMap(me))
+	primary := ct.primary(me)
 
-	var ops []interface{}
+	var ops []user.PatchOperationModel
 	switch action {
 	case "add":
 		if !hasList {
@@ -448,7 +451,7 @@ func updateContact(ctx context.Context, c *selfservice.Client, ct contactType, a
 		if value == primary {
 			return nil, fmt.Errorf("%s is the primary %s; make another one primary first", value, ct.kind)
 		}
-		// A value only pending verification can be removed too, which cancels the verification.
+		// Removing a pending value cancels its verification.
 		isPending := ct.pending(extensionAttrs) == value
 		if !slices.Contains(current, value) && !isPending {
 			return nil, fmt.Errorf("%s isn't one of the user's %ss", value, ct.kind)
@@ -472,7 +475,7 @@ func updateContact(ctx context.Context, c *selfservice.Client, ct contactType, a
 	if err != nil {
 		return nil, err
 	}
-	if action != "remove" && ct.pending(asMap(asMap(profile)[extensionSchema])) == value {
+	if action != "remove" && ct.pending(asMap(profile[extensionSchema])) == value {
 		return map[string]interface{}{
 			"profile":             profile,
 			"pendingVerification": value,
@@ -482,9 +485,9 @@ func updateContact(ctx context.Context, c *selfservice.Client, ct contactType, a
 	return profile, nil
 }
 
-// replaceInExtension builds a replace operation for attributes under the extension schema.
-func replaceInExtension(attrs map[string]interface{}) map[string]interface{} {
-	return map[string]interface{}{"op": "replace", "value": inSchema(extensionSchema, attrs)}
+// replaceInExtension replaces attributes in the extension schema.
+func replaceInExtension(attrs map[string]interface{}) user.PatchOperationModel {
+	return patchOp(user.PatchOpReplace, "", inSchema(extensionSchema, attrs))
 }
 
 func stringList(v interface{}) []string {

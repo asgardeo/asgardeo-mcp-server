@@ -21,30 +21,32 @@ package enduser
 import (
 	"context"
 	"fmt"
-	"net/url"
-	"strconv"
 
-	"github.com/asgardeo/mcp/internal/selfservice"
+	"github.com/asgardeo/go/pkg/sdk"
+	"github.com/asgardeo/go/pkg/self_service"
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 )
 
-func appTools(c *selfservice.Client) []server.ServerTool {
+func appTools(c *sdk.Client, clientID string) []server.ServerTool {
 	return []server.ServerTool{
 		newTool("list_my_applications",
 			"Lists the applications the signed-in user can access, with their access URLs.",
 			read,
 			func(ctx context.Context, args map[string]interface{}) (interface{}, error) {
-				query := url.Values{}
+				params := self_service.ApplicationListParamsModel{}
 				if filter := str(args, "filter"); filter != "" {
-					query.Set("filter", filter)
+					params.Filter = &filter
 				}
-				for _, key := range []string{"limit", "offset"} {
-					if v, ok := args[key].(float64); ok {
-						query.Set(key, strconv.Itoa(int(v)))
-					}
+				if v, ok := args["limit"].(float64); ok {
+					limit := int32(v)
+					params.Limit = &limit
 				}
-				return c.Get(ctx, meV1+"/applications", query)
+				if v, ok := args["offset"].(float64); ok {
+					offset := int32(v)
+					params.Offset = &offset
+				}
+				return c.SelfService.ListApplications(ctx, &params)
 			},
 			mcp.WithString("filter", mcp.Description("Filter such as 'name co travel' or 'name eq Pickup'.")),
 			mcp.WithNumber("limit", mcp.Description("Maximum number of results.")),
@@ -58,7 +60,7 @@ func appTools(c *selfservice.Client) []server.ServerTool {
 				if err != nil {
 					return nil, err
 				}
-				return c.Get(ctx, meV1+"/applications/"+url.PathEscape(id), nil)
+				return c.SelfService.GetApplication(ctx, id)
 			},
 			mcp.WithString("application_id", mcp.Required(), mcp.Description("Application id from list_my_applications.")),
 		),
@@ -67,15 +69,13 @@ func appTools(c *selfservice.Client) []server.ServerTool {
 				"The app marked currentApp is the one this assistant uses.",
 			read,
 			func(ctx context.Context, args map[string]interface{}) (interface{}, error) {
-				resp, err := c.Get(ctx, meV2+"/authorized-apps", nil)
+				resp, err := c.SelfService.ListAuthorizedApps(ctx)
 				if err != nil {
 					return nil, err
 				}
-				apps := asList(resp)
-				for _, item := range apps {
-					if app := asMap(item); app != nil && isCurrentApp(c, app) {
-						app["currentApp"] = true
-					}
+				apps := make([]authorizedApp, 0, len(resp))
+				for _, app := range resp {
+					apps = append(apps, authorizedApp{AuthorizedAppModel: app, CurrentApp: isCurrentApp(clientID, app)})
 				}
 				return apps, nil
 			},
@@ -90,22 +90,26 @@ func appTools(c *selfservice.Client) []server.ServerTool {
 				if err != nil {
 					return nil, err
 				}
-				path := meV2 + "/authorized-apps/" + url.PathEscape(id)
-				app, err := c.Get(ctx, path, nil)
+				app, err := c.SelfService.GetAuthorizedApp(ctx, id)
 				if err != nil {
 					return nil, err
 				}
-				if isCurrentApp(c, asMap(app)) {
+				if app != nil && isCurrentApp(clientID, *app) {
 					return nil, fmt.Errorf("this is the app this assistant uses, so its access can't be revoked here")
 				}
-				return c.Delete(ctx, path)
+				return nil, c.SelfService.RevokeAuthorizedApp(ctx, id)
 			},
 			mcp.WithString("application_id", mcp.Required(), mcp.Description("App id from list_authorized_apps.")),
 		),
 	}
 }
 
-func isCurrentApp(c *selfservice.Client, app map[string]interface{}) bool {
-	clientID, _ := app["clientId"].(string)
-	return c.ClientID() != "" && clientID == c.ClientID()
+// authorizedApp marks the app this assistant uses.
+type authorizedApp struct {
+	self_service.AuthorizedAppModel
+	CurrentApp bool `json:"currentApp,omitempty"`
+}
+
+func isCurrentApp(clientID string, app self_service.AuthorizedAppModel) bool {
+	return clientID != "" && app.ClientId == clientID
 }

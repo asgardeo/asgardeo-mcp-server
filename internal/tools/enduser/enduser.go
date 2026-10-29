@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/asgardeo/go/pkg/sdk"
 	"github.com/asgardeo/mcp/internal/selfservice"
 	"github.com/asgardeo/mcp/internal/utils"
 	"github.com/mark3labs/mcp-go/mcp"
@@ -31,13 +32,13 @@ import (
 )
 
 // Tools returns every self-service tool.
-func Tools(c *selfservice.Client) []server.ServerTool {
+func Tools(c *sdk.Client, clientID string) []server.ServerTool {
 	var tools []server.ServerTool
 	tools = append(tools, profileTools(c)...)
 	tools = append(tools, sessionTools(c)...)
 	tools = append(tools, securityTools(c)...)
 	tools = append(tools, linkedAccountTools(c)...)
-	tools = append(tools, appTools(c)...)
+	tools = append(tools, appTools(c, clientID)...)
 	tools = append(tools, consentTools(c)...)
 	return tools
 }
@@ -70,7 +71,7 @@ func newTool(name, description string, k kind, handler handlerFunc, opts ...mcp.
 		Handler: func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 			result, err := handler(ctx, req.GetArguments())
 			if err != nil {
-				return mcp.NewToolResultError(err.Error()), nil
+				return mcp.NewToolResultError(selfservice.ErrorText(err)), nil
 			}
 			if result == nil {
 				return mcp.NewToolResultText("Done."), nil
@@ -132,6 +133,15 @@ func requiredStr(args map[string]interface{}, key string) (string, error) {
 func asMap(v interface{}) map[string]interface{} {
 	m, _ := v.(map[string]interface{})
 	return m
+}
+
+// deref returns *p, or the zero value if p is nil.
+func deref[T any](p *T) T {
+	if p == nil {
+		var zero T
+		return zero
+	}
+	return *p
 }
 
 func asList(v interface{}) []interface{} {

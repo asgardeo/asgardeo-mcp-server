@@ -20,28 +20,27 @@ package enduser
 
 import (
 	"context"
-	"net/url"
 
-	"github.com/asgardeo/mcp/internal/selfservice"
+	"github.com/asgardeo/go/pkg/sdk"
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 )
 
-func linkedAccountTools(c *selfservice.Client) []server.ServerTool {
+func linkedAccountTools(c *sdk.Client) []server.ServerTool {
 	return []server.ServerTool{
 		newTool("list_linked_accounts",
 			"Lists the signed-in user's linked local accounts and linked social / enterprise logins.",
 			read,
 			func(ctx context.Context, args map[string]interface{}) (interface{}, error) {
-				local, err := c.Get(ctx, meV1+"/associations", nil)
+				local, err := c.SelfService.ListAssociations(ctx)
 				if err != nil {
 					return nil, err
 				}
-				social, err := c.Get(ctx, meV1+"/federated-associations", nil)
+				social, err := c.SelfService.ListFederatedAssociations(ctx)
 				if err != nil {
 					return nil, err
 				}
-				return map[string]interface{}{"localAccounts": asList(local), "socialAccounts": asList(social)}, nil
+				return map[string]interface{}{"localAccounts": local, "socialAccounts": social}, nil
 			},
 		),
 		newTool("unlink_local_account",
@@ -52,7 +51,7 @@ func linkedAccountTools(c *selfservice.Client) []server.ServerTool {
 				if err != nil {
 					return nil, err
 				}
-				return c.Delete(ctx, meV1+"/associations/"+url.PathEscape(id))
+				return nil, c.SelfService.DeleteAssociation(ctx, id)
 			},
 			mcp.WithString("user_id", mcp.Required(), mcp.Description("userId of the local account from list_linked_accounts.")),
 		),
@@ -64,7 +63,7 @@ func linkedAccountTools(c *selfservice.Client) []server.ServerTool {
 				if err != nil {
 					return nil, err
 				}
-				return c.Delete(ctx, meV1+"/federated-associations/"+url.PathEscape(id))
+				return nil, c.SelfService.DeleteFederatedAssociation(ctx, id)
 			},
 			mcp.WithString("id", mcp.Required(), mcp.Description("Association id (not idp.id) from list_linked_accounts.")),
 		),
@@ -72,21 +71,21 @@ func linkedAccountTools(c *selfservice.Client) []server.ServerTool {
 			"Unlinks every linked local account. List each account that will be unlinked when confirming.",
 			destructive,
 			func(ctx context.Context, args map[string]interface{}) (interface{}, error) {
-				return c.Delete(ctx, meV1+"/associations")
+				return nil, c.SelfService.DeleteAllAssociations(ctx)
 			},
 		),
 		newTool("unlink_all_social_accounts",
 			"Unlinks every social / enterprise login. List each login that will be unlinked when confirming.",
 			destructive,
 			func(ctx context.Context, args map[string]interface{}) (interface{}, error) {
-				social, err := c.Get(ctx, meV1+"/federated-associations", nil)
+				social, err := c.SelfService.ListFederatedAssociations(ctx)
 				if err != nil {
 					return nil, err
 				}
-				if len(asList(social)) == 0 {
+				if len(social) == 0 {
 					return map[string]interface{}{"message": "No social logins to unlink."}, nil
 				}
-				return c.Delete(ctx, meV1+"/federated-associations")
+				return nil, c.SelfService.DeleteAllFederatedAssociations(ctx)
 			},
 		),
 	}

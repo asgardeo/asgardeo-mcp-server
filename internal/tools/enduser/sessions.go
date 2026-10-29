@@ -20,22 +20,19 @@ package enduser
 
 import (
 	"context"
-	"net/url"
 
-	"github.com/asgardeo/mcp/internal/selfservice"
+	"github.com/asgardeo/go/pkg/sdk"
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 )
 
-const meV1 = "/api/users/v1/me"
-
-func sessionTools(c *selfservice.Client) []server.ServerTool {
+func sessionTools(c *sdk.Client) []server.ServerTool {
 	return []server.ServerTool{
 		newTool("list_sessions",
 			"Lists where the signed-in user is signed in: browser and OS (userAgent), IP, login and last access time (epoch milliseconds) and the apps used in each session.",
 			read,
 			func(ctx context.Context, args map[string]interface{}) (interface{}, error) {
-				return c.Get(ctx, meV1+"/sessions", nil)
+				return c.SelfService.ListSessions(ctx)
 			},
 		),
 		newTool("terminate_session",
@@ -47,7 +44,7 @@ func sessionTools(c *selfservice.Client) []server.ServerTool {
 				if err != nil {
 					return nil, err
 				}
-				return c.Delete(ctx, meV1+"/sessions/"+url.PathEscape(id))
+				return nil, c.SelfService.TerminateSession(ctx, id)
 			},
 			mcp.WithString("session_id", mcp.Required(), mcp.Description("Session id from list_sessions.")),
 		),
@@ -55,7 +52,7 @@ func sessionTools(c *selfservice.Client) []server.ServerTool {
 			"Signs the user out of every session on every device, possibly including the current one.",
 			destructive,
 			func(ctx context.Context, args map[string]interface{}) (interface{}, error) {
-				return c.Delete(ctx, meV1+"/sessions")
+				return nil, c.SelfService.TerminateAllSessions(ctx)
 			},
 		),
 	}

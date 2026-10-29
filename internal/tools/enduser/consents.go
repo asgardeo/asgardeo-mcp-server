@@ -22,16 +22,16 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"net/url"
 
+	"github.com/asgardeo/go/pkg/consent"
+	"github.com/asgardeo/go/pkg/sdk"
+	"github.com/asgardeo/go/pkg/self_service"
 	"github.com/asgardeo/mcp/internal/selfservice"
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 )
 
-const consentMgtV1 = "/api/identity/consent-mgt/v1.0/consents"
-
-func consentTools(c *selfservice.Client) []server.ServerTool {
+func consentTools(c *sdk.Client) []server.ServerTool {
 	return []server.ServerTool{
 		newTool("list_consents",
 			"Lists the signed-in user's consents grouped as apps (data shared with an app), policies (accepted terms and privacy policies) "+
@@ -57,11 +57,11 @@ func consentTools(c *selfservice.Client) []server.ServerTool {
 				if err != nil {
 					return nil, err
 				}
-				resp, err := c.Get(ctx, meV1+"/consents/"+url.PathEscape(id), nil)
-				if err != nil {
+				consent, err := c.SelfService.GetConsent(ctx, id)
+				if err != nil || consent == nil {
 					return nil, err
 				}
-				return compactConsent(asMap(resp)), nil
+				return compactConsent(*consent), nil
 			},
 			mcp.WithString("consent_id", mcp.Required(), mcp.Description("Consent id from list_consents.")),
 		),
@@ -73,11 +73,11 @@ func consentTools(c *selfservice.Client) []server.ServerTool {
 				if err != nil {
 					return nil, err
 				}
-				resp, err := c.Get(ctx, consentMgtV1+"/receipts/"+url.PathEscape(id), nil)
-				if err != nil {
+				receipt, err := c.Consent.GetReceipt(ctx, id)
+				if err != nil || receipt == nil {
 					return nil, err
 				}
-				return compactReceipt(asMap(resp)), nil
+				return compactReceipt(*receipt), nil
 			},
 			mcp.WithString("consent_id", mcp.Required(), mcp.Description("App consent id from list_consents.")),
 		),
@@ -89,8 +89,7 @@ func consentTools(c *selfservice.Client) []server.ServerTool {
 				if err != nil {
 					return nil, err
 				}
-				_, err = c.Delete(ctx, consentMgtV1+"/receipts/"+url.PathEscape(id))
-				return nil, err
+				return nil, c.Consent.RevokeReceipt(ctx, id)
 			},
 			mcp.WithString("consent_id", mcp.Required(), mcp.Description("App consent id from list_consents.")),
 		),
@@ -103,8 +102,7 @@ func consentTools(c *selfservice.Client) []server.ServerTool {
 				if err != nil {
 					return nil, err
 				}
-				_, err = c.Do(ctx, http.MethodPost, meV1+"/consents/"+url.PathEscape(id)+"/revoke", nil, nil, "")
-				return nil, err
+				return nil, c.SelfService.RevokeConsent(ctx, id)
 			},
 			mcp.WithString("consent_id", mcp.Required(), mcp.Description("Policy or communication preference id from list_consents.")),
 		),
@@ -112,22 +110,22 @@ func consentTools(c *selfservice.Client) []server.ServerTool {
 }
 
 // compactConsent keeps a consent's name, policy link and channels.
-func compactConsent(consent map[string]interface{}) map[string]interface{} {
-	first := map[string]interface{}{}
-	if purposes := asList(consent["purposes"]); len(purposes) > 0 {
-		first = asMap(purposes[0])
+func compactConsent(consent self_service.ConsentModel) map[string]interface{} {
+	first := self_service.ConsentPurposeModel{}
+	if purposes := deref(consent.Purposes); len(purposes) > 0 {
+		first = purposes[0]
 	}
 	out := map[string]interface{}{
-		"id": consent["id"], "state": consent["state"], "timestamp": consent["timestamp"],
-		"type": first["type"], "name": first["name"],
+		"id": consent.Id, "state": consent.State, "timestamp": consent.Timestamp,
+		"type": first.Type, "name": first.Name,
 	}
-	if policyURL, ok := asMap(first["properties"])["policyUrl"]; ok {
+	if policyURL, ok := deref(first.Properties)["policyUrl"]; ok {
 		out["policyUrl"] = policyURL
 	}
-	channels := []interface{}{}
-	for _, item := range asList(first["elements"]) {
+	channels := []string{}
+	for _, element := range deref(first.Elements) {
 		// "Preference" is a server placeholder, not a channel.
-		if name := asMap(item)["displayName"]; name != nil && name != "Preference" {
+		if name := deref(element.DisplayName); name != "" && name != "Preference" {
 			channels = append(channels, name)
 		}
 	}
@@ -137,50 +135,49 @@ func compactConsent(consent map[string]interface{}) map[string]interface{} {
 	return out
 }
 
-// compactReceipt keeps what an app consent covers, leaving out the controller and receipt metadata.
-func compactReceipt(receipt map[string]interface{}) map[string]interface{} {
+// compactReceipt keeps what an app consent covers.
+func compactReceipt(receipt consent.ConsentReceiptModel) map[string]interface{} {
 	apps := []interface{}{}
-	for _, item := range asList(receipt["services"]) {
-		service := asMap(item)
+	for _, service := range receipt.Services {
 		purposes := []interface{}{}
-		for _, rawPurpose := range asList(service["purposes"]) {
-			purpose := asMap(rawPurpose)
-			categories := []interface{}{}
-			for _, rawCategory := range asList(purpose["piiCategory"]) {
-				category := asMap(rawCategory)
-				name := category["piiCategoryDisplayName"]
-				if name == nil {
-					name = category["piiCategoryName"]
+		for _, purpose := range deref(service.Purposes) {
+			categories := []string{}
+			for _, category := range purpose.PiiCategory {
+				name := deref(category.PiiCategoryDisplayName)
+				if name == "" {
+					name = deref(category.PiiCategoryName)
 				}
 				categories = append(categories, name)
 			}
 			entry := map[string]interface{}{
-				"purpose": purpose["purpose"], "dataCategories": categories,
-				"thirdPartyDisclosure": purpose["thirdPartyDisclosure"], "termination": purpose["termination"],
+				"purpose": purpose.Purpose, "dataCategories": categories,
+				"thirdPartyDisclosure": purpose.ThirdPartyDisclosure, "termination": purpose.Termination,
 			}
-			if name, ok := purpose["thirdPartyName"].(string); ok && name != "" {
-				entry["thirdPartyName"] = name
+			if purpose.ThirdPartyName != "" {
+				entry["thirdPartyName"] = purpose.ThirdPartyName
 			}
 			purposes = append(purposes, entry)
 		}
-		apps = append(apps, map[string]interface{}{"app": service["serviceDisplayName"], "purposes": purposes})
+		apps = append(apps, map[string]interface{}{"app": service.ServiceDisplayName, "purposes": purposes})
 	}
 	out := map[string]interface{}{
-		"id": receipt["consentReceiptID"], "state": receipt["state"], "timestamp": receipt["consentTimestamp"], "apps": apps,
+		"id": receipt.ConsentReceiptID, "state": receipt.State, "timestamp": receipt.ConsentTimestamp, "apps": apps,
 	}
-	if policyURL, ok := receipt["policyUrl"].(string); ok && policyURL != "" && policyURL != "NONE" {
-		out["policyUrl"] = policyURL
+	if receipt.PolicyUrl != "" && receipt.PolicyUrl != "NONE" {
+		out["policyUrl"] = receipt.PolicyUrl
 	}
 	return out
 }
 
-// listConsents uses the consent v2 API, or v1 when v2 isn't available.
-func listConsents(ctx context.Context, c *selfservice.Client, state string) (interface{}, error) {
-	query := url.Values{"attributes": {"purposes"}}
+// listConsents uses the user consents API, or the consent management API when it isn't available.
+func listConsents(ctx context.Context, c *sdk.Client, state string) (interface{}, error) {
+	attributes := "purposes"
+	params := self_service.ConsentListParamsModel{Attributes: &attributes}
 	if state != "" {
-		query.Set("state", state)
+		consentState := self_service.ConsentStateModel(state)
+		params.State = &consentState
 	}
-	resp, err := c.Get(ctx, meV1+"/consents", query)
+	consents, err := c.SelfService.ListConsents(ctx, &params)
 	if selfservice.IsStatus(err, http.StatusNotFound, http.StatusMethodNotAllowed) {
 		return listConsentsV1(ctx, c, state)
 	}
@@ -189,54 +186,52 @@ func listConsents(ctx context.Context, c *selfservice.Client, state string) (int
 	}
 
 	apps, policies, preferences := []interface{}{}, []interface{}{}, []interface{}{}
-	for _, item := range asList(resp) {
-		consent := asMap(item)
-		purposes := asList(consent["purposes"])
-		first := map[string]interface{}{}
+	for _, consent := range consents {
+		purposes := deref(consent.Purposes)
+		first := self_service.ConsentPurposeSummaryModel{}
 		if len(purposes) > 0 {
-			first = asMap(purposes[0])
+			first = purposes[0]
 		}
-		entry := map[string]interface{}{"id": consent["id"], "state": consent["state"], "timestamp": consent["timestamp"]}
-		switch first["type"] {
+		entry := map[string]interface{}{"id": consent.Id, "state": consent.State, "timestamp": consent.Timestamp}
+		switch deref(first.Type) {
 		case "Policy":
-			entry["name"], entry["version"] = first["name"], first["version"]
+			entry["name"], entry["version"] = first.Name, first.Version
 			policies = append(policies, entry)
 		case "Preference":
-			entry["name"] = first["name"]
+			entry["name"] = first.Name
 			preferences = append(preferences, entry)
 		default:
 			var names []interface{}
 			for _, p := range purposes {
-				names = append(names, asMap(p)["name"])
+				names = append(names, p.Name)
 			}
-			entry["app"], entry["purposes"] = consent["serviceId"], names
+			entry["app"], entry["purposes"] = consent.ServiceId, names
 			apps = append(apps, entry)
 		}
 	}
 	return map[string]interface{}{"apps": apps, "policies": policies, "communicationPreferences": preferences}, nil
 }
 
-func listConsentsV1(ctx context.Context, c *selfservice.Client, state string) (interface{}, error) {
-	me, err := c.Get(ctx, "/scim2/Me", url.Values{"attributes": {"userName"}})
+func listConsentsV1(ctx context.Context, c *sdk.Client, state string) (interface{}, error) {
+	me, err := c.User.GetMe(ctx, "userName")
 	if err != nil {
 		return nil, err
 	}
-	userName, _ := asMap(me)["userName"].(string)
+	userName, _ := me["userName"].(string)
 	if userName == "" {
 		return nil, fmt.Errorf("could not read the signed-in user's username")
 	}
-	query := url.Values{"piiPrincipalId": {userName}}
+	params := consent.ConsentListParamsModel{PiiPrincipalId: &userName}
 	if state != "" {
-		query.Set("state", state)
+		params.State = &state
 	}
-	resp, err := c.Get(ctx, consentMgtV1, query)
+	receipts, err := c.Consent.List(ctx, &params)
 	if err != nil {
 		return nil, err
 	}
 	apps := []interface{}{}
-	for _, item := range asList(resp) {
-		receipt := asMap(item)
-		apps = append(apps, map[string]interface{}{"id": receipt["consentReceiptID"], "app": receipt["spDisplayName"], "state": receipt["state"]})
+	for _, receipt := range receipts {
+		apps = append(apps, map[string]interface{}{"id": receipt.ConsentReceiptID, "app": receipt.SpDisplayName, "state": receipt.State})
 	}
 	return map[string]interface{}{"apps": apps}, nil
 }

@@ -73,7 +73,7 @@ Run one server for all the users of your application. It serves the MCP Streamab
 TRANSPORT=http PORT=8000 BASE_URL=https://api.asgardeo.io/t/<asgardeo organization> ./self-service-mcp
 ```
 
-- Every request must carry the signed-in user's token in the `Authorization` header (for example `Authorization: Bearer <user access token>`). The server passes this header to Asgardeo / WSO2 Identity Server as is, so each call acts as the user who sent it. Requests without it get `401`.
+- Every request must carry the signed-in user's token as a bearer token in the `Authorization` header (`Authorization: Bearer <user access token>`). The server uses this token for its calls to Asgardeo / WSO2 Identity Server, so each call acts as the user who sent it. Requests without a bearer token get `401`.
 - The server keeps no session or token. Asgardeo / WSO2 Identity Server validates the token on every call.
 - Serve it behind HTTPS (for example a reverse proxy or load balancer that terminates TLS).
 

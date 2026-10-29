@@ -29,6 +29,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/asgardeo/go/pkg/sdk"
 	"github.com/asgardeo/mcp/internal/config"
 	"github.com/asgardeo/mcp/internal/selfservice"
 	"github.com/asgardeo/mcp/internal/tools/enduser"
@@ -45,7 +46,7 @@ const instructions = `Manages the signed-in user's own account: profile, session
 - For anything these tools don't cover, ask the user to complete it in the %s.`
 
 // setupServer configures the self-service MCP server and registers tools.
-func setupServer(client *selfservice.Client) *server.MCPServer {
+func setupServer(client *sdk.Client) *server.MCPServer {
 	portalName := os.Getenv(config.PORTAL_NAME_PARAM)
 	if portalName == "" {
 		portalName = "self-service portal"
@@ -58,27 +59,35 @@ func setupServer(client *selfservice.Client) *server.MCPServer {
 		server.WithRecovery(),
 		server.WithInstructions(fmt.Sprintf(instructions, portalName)),
 	)
-	s.AddTools(enduser.Tools(client)...)
+	s.AddTools(enduser.Tools(client, os.Getenv(config.CLIENT_ID_PARAM))...)
 	return s
 }
 
 func main() {
-	client, err := selfservice.NewClient()
+	// Over HTTP, each request carries its own token.
+	transport := os.Getenv(config.TRANSPORT_PARAM)
+	token := ""
+	switch transport {
+	case "", "stdio":
+		token = os.Getenv(config.ACCESS_TOKEN_PARAM)
+		if token == "" {
+			log.Fatalf("Configuration error: missing required environment variable ACCESS_TOKEN")
+		}
+	case "http":
+	default:
+		log.Fatalf("Configuration error: TRANSPORT must be stdio or http, got %q", transport)
+	}
+
+	client, err := selfservice.NewClient(token)
 	if err != nil {
 		log.Fatalf("Configuration error: %v", err)
 	}
 	s := setupServer(client)
 
-	switch transport := os.Getenv(config.TRANSPORT_PARAM); transport {
-	case "", "stdio":
-		if os.Getenv(config.ACCESS_TOKEN_PARAM) == "" {
-			log.Fatalf("Configuration error: missing required environment variable ACCESS_TOKEN")
-		}
-		err = server.ServeStdio(s)
-	case "http":
+	if transport == "http" {
 		err = serveHTTP(s)
-	default:
-		log.Fatalf("Configuration error: TRANSPORT must be stdio or http, got %q", transport)
+	} else {
+		err = server.ServeStdio(s)
 	}
 	if err != nil {
 		log.Fatalf("Server error: %v", err)
@@ -119,12 +128,12 @@ func serveHTTP(s *server.MCPServer) error {
 	return <-shutdownErr
 }
 
-// requireAuthorization rejects requests without an Authorization header.
+// requireAuthorization rejects requests without a bearer token.
 func requireAuthorization(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Header.Get("Authorization") == "" {
+		if selfservice.BearerToken(r.Header.Get("Authorization")) == "" {
 			w.Header().Set("WWW-Authenticate", "Bearer")
-			http.Error(w, "missing Authorization header", http.StatusUnauthorized)
+			http.Error(w, "missing bearer token in the Authorization header", http.StatusUnauthorized)
 			return
 		}
 		next.ServeHTTP(w, r)

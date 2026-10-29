@@ -22,19 +22,17 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"net/url"
 	"strings"
 
+	"github.com/asgardeo/go/pkg/sdk"
 	"github.com/asgardeo/mcp/internal/selfservice"
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 )
 
-const meV2 = "/api/users/v2/me"
-
 const loadFailed = "could not be loaded"
 
-func securityTools(c *selfservice.Client) []server.ServerTool {
+func securityTools(c *sdk.Client) []server.ServerTool {
 	return []server.ServerTool{
 		newTool("get_security_overview",
 			"Summarises the signed-in user's sign-in security: authenticator app on/off, enabled MFA options, remaining backup codes, passkeys and push devices.",
@@ -55,9 +53,7 @@ func securityTools(c *selfservice.Client) []server.ServerTool {
 				if err != nil {
 					return nil, err
 				}
-				body := []map[string]string{{"operation": "REPLACE", "path": "/displayName", "value": name}}
-				_, err = c.Do(ctx, http.MethodPatch, meV2+"/webauthn/"+url.PathEscape(id), nil, body, "")
-				return nil, err
+				return nil, c.SelfService.RenamePasskey(ctx, id, name)
 			},
 			mcp.WithString("credential_id", mcp.Required(), mcp.Description("Passkey credentialId from get_security_overview.")),
 			mcp.WithString("display_name", mcp.Required(), mcp.Description("New name.")),
@@ -70,7 +66,7 @@ func securityTools(c *selfservice.Client) []server.ServerTool {
 				if err != nil {
 					return nil, err
 				}
-				return c.Delete(ctx, meV2+"/webauthn/"+url.PathEscape(id))
+				return nil, c.SelfService.DeletePasskey(ctx, id)
 			},
 			mcp.WithString("credential_id", mcp.Required(), mcp.Description("Passkey credentialId from get_security_overview.")),
 		),
@@ -82,7 +78,7 @@ func securityTools(c *selfservice.Client) []server.ServerTool {
 				if err != nil {
 					return nil, err
 				}
-				return c.Delete(ctx, meV1+"/push/devices/"+url.PathEscape(id))
+				return nil, c.SelfService.DeletePushDevice(ctx, id)
 			},
 			mcp.WithString("device_id", mcp.Required(), mcp.Description("deviceId from get_security_overview.")),
 		),
@@ -90,80 +86,83 @@ func securityTools(c *selfservice.Client) []server.ServerTool {
 			"Removes the user's authenticator app (TOTP); codes from the app stop working. Warn the user if it is their last second factor.",
 			destructive,
 			func(ctx context.Context, args map[string]interface{}) (interface{}, error) {
-				_, err := c.Delete(ctx, meV1+"/totp")
-				return nil, err
+				return nil, c.SelfService.DeleteTOTP(ctx)
 			},
 		),
 		newTool("delete_backup_codes",
 			"Deletes the user's remaining backup codes; they stop working. Warn the user if they are their last second factor.",
 			destructive,
 			func(ctx context.Context, args map[string]interface{}) (interface{}, error) {
-				return c.Delete(ctx, meV1+"/backup-codes")
+				return nil, c.SelfService.DeleteBackupCodes(ctx)
 			},
 		),
 	}
 }
 
-func securityOverview(ctx context.Context, c *selfservice.Client) (interface{}, error) {
+func securityOverview(ctx context.Context, c *sdk.Client) (interface{}, error) {
 	out := map[string]interface{}{}
 
-	// fetch skips unsupported features (404, 405) and marks failed ones. 401 and 403 stop the overview.
-	var authErr error
-	fetch := func(path string, query url.Values, keys ...string) (interface{}, bool) {
-		if authErr != nil {
-			return nil, false
-		}
-		resp, err := c.Get(ctx, path, query)
-		if err != nil {
-			switch {
-			case selfservice.IsStatus(err, http.StatusUnauthorized, http.StatusForbidden):
-				authErr = err
-			case selfservice.IsStatus(err, http.StatusNotFound, http.StatusMethodNotAllowed):
-			default:
-				for _, key := range keys {
-					out[key] = loadFailed
-				}
+	// failed skips unsupported features, marks other failures and returns auth errors.
+	failed := func(err error, keys ...string) error {
+		switch {
+		case selfservice.IsStatus(err, http.StatusUnauthorized, http.StatusForbidden):
+			return err
+		case selfservice.IsStatus(err, http.StatusNotFound, http.StatusMethodNotAllowed):
+		default:
+			for _, key := range keys {
+				out[key] = loadFailed
 			}
-			return nil, false
 		}
-		return resp, true
+		return nil
 	}
 
-	if me, ok := fetch("/scim2/Me", url.Values{"attributes": {extensionSchema}}, "authenticatorAppEnabled", "backupCodesEnabled"); ok {
-		attrs := asMap(asMap(me)[extensionSchema])
+	if me, err := c.User.GetMe(ctx, extensionSchema); err != nil {
+		if err := failed(err, "authenticatorAppEnabled", "backupCodesEnabled"); err != nil {
+			return nil, err
+		}
+	} else {
+		attrs := asMap(me[extensionSchema])
 		out["authenticatorAppEnabled"] = attrs["totpEnabled"]
 		out["backupCodesEnabled"] = attrs["backupCodeEnabled"]
 	}
-	if mfa, ok := fetch(meV1+"/mfa/authenticators", nil, "enabledMfaOptions"); ok {
-		out["enabledMfaOptions"] = asMap(mfa)["enabledAuthenticators"]
+	if mfa, err := c.SelfService.GetEnabledMFAAuthenticators(ctx); err != nil {
+		if err := failed(err, "enabledMfaOptions"); err != nil {
+			return nil, err
+		}
+	} else if mfa != nil {
+		out["enabledMfaOptions"] = mfa.EnabledAuthenticators
 	}
-	if codes, ok := fetch(meV1+"/backup-codes", nil, "backupCodesRemaining"); ok {
-		out["backupCodesRemaining"] = asMap(codes)["remainingBackupCodesCount"]
+	if codes, err := c.SelfService.GetRemainingBackupCodes(ctx); err != nil {
+		if err := failed(err, "backupCodesRemaining"); err != nil {
+			return nil, err
+		}
+	} else if codes != nil && codes.RemainingBackupCodesCount != nil {
+		out["backupCodesRemaining"] = *codes.RemainingBackupCodesCount
 	}
-	if resp, ok := fetch(meV2+"/webauthn", nil, "passkeys"); ok {
-		passkeys := []map[string]interface{}{}
-		for _, item := range asList(resp) {
-			p := asMap(item)
-			passkeys = append(passkeys, map[string]interface{}{
+	if passkeys, err := c.SelfService.ListPasskeys(ctx); err != nil {
+		if err := failed(err, "passkeys"); err != nil {
+			return nil, err
+		}
+	} else {
+		// Keep only what identifies the passkey, not its key material.
+		summaries := []map[string]interface{}{}
+		for _, p := range passkeys {
+			summaries = append(summaries, map[string]interface{}{
 				"credentialId":     asMap(p["credential"])["credentialId"],
 				"displayName":      p["displayName"],
 				"registrationTime": p["registrationTime"],
 			})
 		}
-		out["passkeys"] = passkeys
+		out["passkeys"] = summaries
 	}
-	if resp, ok := fetch(meV1+"/push/devices", nil, "pushDevices"); ok {
-		devices := []map[string]interface{}{}
-		for _, item := range asList(resp) {
-			d := asMap(item)
-			devices = append(devices, map[string]interface{}{"deviceId": d["deviceId"], "name": d["name"], "model": d["model"]})
+	if devices, err := c.SelfService.ListPushDevices(ctx); err != nil {
+		if err := failed(err, "pushDevices"); err != nil {
+			return nil, err
 		}
+	} else {
 		out["pushDevices"] = devices
 	}
 
-	if authErr != nil {
-		return nil, authErr
-	}
 	if out["enabledMfaOptions"] != loadFailed {
 		out["enabledMfaOptions"] = enrolledMfaOptions(out)
 	}
@@ -178,7 +177,7 @@ func enrolledMfaOptions(out map[string]interface{}) []string {
 		switch {
 		case option == "":
 		case option == "totp" && fmt.Sprint(out["authenticatorAppEnabled"]) == "false":
-		case option == "backup-code-authenticator" && out["backupCodesRemaining"] == float64(0):
+		case option == "backup-code-authenticator" && out["backupCodesRemaining"] == 0:
 		default:
 			options = append(options, option)
 		}
