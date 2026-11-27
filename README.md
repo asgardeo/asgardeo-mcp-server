@@ -18,4 +18,4 @@ See each server's guide for setup, configuration, available tools and example pr
 
 ## Contributing
 
-Contributions are welcome! Submit issues or pull requests via the [GitHub repository](https://github.com/asgardeo/asgardeo-mcp-server/issues).
+Contributions are welcome! Submit issues or pull requests via the [GitHub repository](https://github.com/asgardeo/asgardeo/issues).
