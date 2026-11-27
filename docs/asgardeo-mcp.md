@@ -226,6 +226,6 @@ The Asgardeo MCP Server provides the following tools for interacting with your o
 
 ### Getting Help
 If issues persist after troubleshooting:
-- Check [GitHub issues](https://github.com/asgardeo/asgardeo-mcp-server/issues)
+- Check [GitHub issues](https://github.com/asgardeo/asgardeo/issues)
 - Create a new detailed issue including error messages and environment info
 - Join the WSO2 community forums for support
